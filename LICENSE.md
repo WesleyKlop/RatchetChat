@@ -1,39 +1,6 @@
-# RatchetChat
-A Websocket based chat system using Ratchet
-
-## Installation
-
-```shell
-git clone "https://github.com/WesleyKlop/RatchetChat" && cd RatchetChat
-# Install dependencies
-composer install
-```
-
-## Usage
-
-```shell
-# Start the server
-php bin/server.php
-```
-Now open your browser and go to `localhost:1337` and enjoy your chat system!
-
-## Contributing
-
-1. Fork it!
-2. Create your feature branch: `git checkout -b my-new-feature`
-3. Commit your changes: `git commit -am 'Add some feature'`
-4. Push to the branch: `git push origin my-new-feature`
-5. Submit a pull request! :D
-
-## Credits
-
-The creators and developers of the Ratchet library!
-
-## License
-
 The MIT License
 
-Copyright (c) 2016 [Wesley Klop](https://wesleyklop.nl).
+Copyright (c) 2016 Wesley Klop. https://wesleyklop.nl
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
