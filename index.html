@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<head>
+    <meta charset='utf8'>
+    <title>Simple websocket chat using Ratchet!</title>
+    <style>
+#chat {
+    height: 50vh;
+    overflow-y: scroll;
+}
+    </style>
+</head>
+<body>
+    <div class='window'>
+        <div class='chat' id='chat'>
+        </div>
+        <div class='chatbox'>
+            <label for='msgbox'>Chat:</label>&nbsp;<input type='text' id='msgbox' placeholder='Hello World!'>
+            <button id='chatsend'>Send</button>
+        </div>
+    </div>
+
+    <script>
+var conn = new WebSocket('ws://145.118.4.13:1337');
+let sendBtn = document.querySelector('#chatsend'),
+    chatbox = document.querySelector('#chat'),
+    msgBox = document.querySelector('#msgbox');
+
+function writeMessage(message) {
+    chatbox.innerHTML += "<p>" + message + "</p><hr />";
+    chatbox.scrollTop = chatbox.scrollHeight;
+}
+
+conn.onopen = function(e) {
+    console.log("Connection established!");
+};
+
+conn.onmessage = function(e) {
+    writeMessage(e.data);
+};
+
+
+sendBtn.addEventListener('click', function sendMessage(e) {
+    if(conn.readyState != 1)
+        return;
+
+    conn.send(msgBox.value);
+    writeMessage(msgBox.value);
+});
+    </script>
+</body>
