@@ -1,6 +1,6 @@
 <?php
 // $_SERVER['SERVER_ADDR'] seems to be empty when using the built in webServer?
-$serverAddress = $_SERVER['SERVER_ADDR'] ?: 'localhost'; ?><!DOCTYPE html>
+$serverAddress = $_GET['ws'] ?: $_SERVER['SERVER_ADDR'] ?: 'localhost'; ?><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset='utf-8'>
@@ -87,6 +87,7 @@ $serverAddress = $_SERVER['SERVER_ADDR'] ?: 'localhost'; ?><!DOCTYPE html>
                         </div>
                         <input type="submit" id="form-submit" value="Sign In"
                                class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                        <button id="form-cancel" class="mdl-button mdl-js-button mdl-js-ripple-effect">cancel</button>
                     </form>
                 </div>
             </dialog>

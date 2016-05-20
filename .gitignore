@@ -54,3 +54,5 @@ composer.phar
 ### Manually added
 /ldap.ini
 !/vendor/.htaccess
+logs/*
+!logs/.gitkeep

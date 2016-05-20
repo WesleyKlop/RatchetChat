@@ -19,6 +19,7 @@ if (!Date.now) {
     signInForm = document.querySelector('#form-signin'),
     signInUsername = document.querySelector('#form-username'),
     signInPassword = document.querySelector('#form-password'),
+    signInCancel = document.querySelector('#form-cancel'),
     snackbar = document.querySelector('#must-signin-snackbar'),
     accountHeader = document.querySelector('#user-name');
 
@@ -82,7 +83,11 @@ if (!Date.now) {
     if (!user.signedIn) {
       showSnackbar({
         message: 'You must sign in first',
-        timeout: 2000
+        timeout: 2000,
+        actionText: 'Sign in',
+        actionHandler: () => {
+          signInDialog.show();
+        }
       });
       return;
     }
@@ -162,12 +167,18 @@ if (!Date.now) {
       xhr = new XMLHttpRequest();
 
     xhr.addEventListener('load', () => {
+      console.log(xhr.responseText);
       let json = JSON.parse(xhr.responseText);
       processResponse(json);
     });
     xhr.open('post', loginURL, true);
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhr.send(queryString);
+  });
+
+  signInCancel.addEventListener('click', (e) => {
+    e.preventDefault();
+    signInDialog.close();
   });
 
 })(socketURL, loginURL);

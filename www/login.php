@@ -48,6 +48,9 @@ $username = $_POST['username'];
 $password = $_POST['password'];
 
 // Parse the ldap config and connect to the AD server
+if (!file_exists(__DIR__ . '/../ldap.ini')) {
+    throw new \Illuminate\Contracts\Filesystem\FileNotFoundException('Couldn\'t find ldap.ini');
+}
 $config = parse_ini_file(__DIR__ . '/../ldap.ini');
 // Create provider and AdLdap
 $adProvider = new Provider($config);
