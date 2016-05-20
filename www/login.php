@@ -19,15 +19,15 @@ header('Content-type: application/json');
 require_once __DIR__ . '/../vendor/autoload.php';
 
 // Create a default response which will be edited over the course of this script
-$return = null;
+$data = null;
 $response = [
     'status' => 'failure',
-    'response' => &$return
+    'response' => &$data
 ];
 
 // We only want POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    $return = 'Unexpected request method ' . $_SERVER['REQUEST_METHOD'];
+    $data = 'Unexpected request method ' . $_SERVER['REQUEST_METHOD'];
     die(json_encode($response));
 }
 
@@ -59,15 +59,15 @@ try {
         $_SESSION['common_name'] = $user->getDisplayName();
 
         $response['status'] = 'success';
-        $return['username'] = $username;
-        $return['common_name'] = $user->getDisplayName();
+        $data['username'] = $username;
+        $data['common_name'] = $user->getDisplayName();
     } else {
-        $return = 'Invalid username or password';
+        $data = 'Invalid username or password';
     }
 } catch (\Adldap\Exceptions\Auth\UsernameRequiredException $e) {
-    $return = $_POST;
+    $data = 'Missing username';
 } catch (\Adldap\Exceptions\Auth\PasswordRequiredException $e) {
-    $return = 'Missing password';
+    $data = 'Missing password';
 }
 
 echo json_encode($response);
