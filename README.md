@@ -1,5 +1,5 @@
 # RatchetChat
-A Websocket based chat system using Ratchet
+A Websocket based chat system using Ratchet and Adldap for authentication
 
 ## Installation
 
@@ -13,9 +13,11 @@ composer install
 
 ```shell
 # Start the server
-php bin/server.php
+php bin/server.php &
+# Start a webserver for the chat page
+php -S localhost:8080 -t www
 ```
-Now open your browser and go to `localhost:1337` and enjoy your chat system!
+Now open your browser and go to `localhost:8080` and enjoy your chat system!
 
 ## Contributing
 

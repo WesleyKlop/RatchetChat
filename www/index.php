@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+<?php
+// $_SERVER['SERVER_ADDR'] seems to be empty when using the built in webserver?
+$serverAddress = $_SERVER['SERVER_ADDR'] ?: 'localhost'; ?><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset='utf-8'>
@@ -94,7 +96,7 @@
 </div>
 
 <script>
-    var socketURL = "ws://<?php echo $_SERVER['SERVER_ADDR']; ?>:1337",
+    var socketURL = "ws://<?php echo $serverAddress; ?>:1337",
         loginURL = "./login.php";
 </script>
 <script src="scripts/main.js"></script>
