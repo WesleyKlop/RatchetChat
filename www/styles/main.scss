@@ -2,10 +2,6 @@ html, body {
   font-family: 'Roboto', 'Helvetica', sans-serif;
 }
 
-/** {
-    box-sizing: border-box;
-}*/
-
 main, #messages-card {
   height: 100%;
   padding-bottom: 0;
@@ -228,4 +224,10 @@ main, #messages-card {
 
 dialog {
   z-index: 2147483647;
+}
+
+header h3 a {
+  z-index: 2147483647;
+  text-decoration: none;
+  color: inherit;
 }

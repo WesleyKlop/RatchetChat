@@ -1,20 +1,31 @@
 /**
  * Created by wesley on 5/19/16.
  */
+// Timestamp shim
+if (!Date.now) {
+  Date.now = function() {
+    return new Date().getTime();
+  }
+}
+
 ((socketURL, loginURL) => {
   let conn = new WebSocket(socketURL),
     sendBtn = document.querySelector('#submit'),
     chatBox = document.querySelector('#messages'),
     msgBox = document.querySelector('#message'),
     signInDialog = document.querySelector('#form-dialog'),
-    signInDialogButton = document.querySelector('#sign-in'),
+    signInButton = document.querySelector('#sign-in'),
+    signOutButton = document.querySelector('#sign-out'),
     signInForm = document.querySelector('#form-signin'),
     signInUsername = document.querySelector('#form-username'),
-    signInPassword = document.querySelector('#form-password');
+    signInPassword = document.querySelector('#form-password'),
+    snackbar = document.querySelector('#must-signin-snackbar'),
+    accountHeader = document.querySelector('#user-name');
 
   var user = {
-    username: 'anon',
-    common_name: 'Wesley'
+    signedIn: false,
+    username: '',
+    common_name: ''
   };
 
 
@@ -25,13 +36,18 @@
       '<div class="spacing"></div>' +
       '<div class="message"></div>' +
       '<div class="name"></div>' +
-      '<div class="time">13:37</div>' +
+      '<div class="time"></div>' +
       '</div>';
 
-    let messageBox = container.firstChild;
+    let messageBox = container.firstChild,
+      date = new Date(message.time * 1000),
+      hours = date.getHours(),
+      minutes = "0" + date.getMinutes(),
+      seconds = "0" + date.getSeconds();
 
     messageBox.querySelector('.message').innerText = message.message;
     messageBox.querySelector('.name').textContent = message.common_name;
+    messageBox.querySelector('.time').textContent = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
     messageBox.dataset.username = message.username;
 
     chatBox.appendChild(messageBox);
@@ -55,12 +71,21 @@
     let message = {
       message: msgBox.value.trim(),
       username: user.username,
-      common_name: user.common_name
+      common_name: user.common_name,
+      time: Math.floor(Date.now() / 1000)
     };
 
     if (conn.readyState != 1
       || message.message.length <= 0)
       return;
+
+    if (!user.signedIn) {
+      showSnackbar({
+        message: 'You must sign in first',
+        timeout: 2000
+      });
+      return;
+    }
 
     message = JSON.stringify(message);
     conn.send(message);
@@ -70,21 +95,65 @@
     msgBox.value = '';
   });
 
-  signInDialogButton.addEventListener('click', () => {
+  signInButton.addEventListener('click', () => {
     signInDialog.show();
   });
 
+  function showSnackbar(data) {
+    snackbar.MaterialSnackbar.showSnackbar(data);
+  }
+
+  function setAccountHeader() {
+    if (user.signedIn) {
+      accountHeader.textContent = user.common_name;
+      accountHeader.removeAttribute('hidden');
+
+      signInButton.setAttribute('hidden', 'true');
+      signOutButton.removeAttribute('hidden');
+    } else {
+      accountHeader.setAttribute('hidden', 'true');
+      accountHeader.textContent = '';
+
+      signOutButton.setAttribute('hidden', 'true');
+      signInButton.removeAttribute('hidden');
+    }
+  }
+
   function processResponse(response) {
     if (response.status != "success") {
-      alert(response.response);
       console.error(response);
+      let data = {
+        message: response.response,
+        timeout: 5000
+      };
+      showSnackbar(data);
       return;
     }
 
     console.info("user", response.response);
     user = response.response;
+    user.signedIn = true;
     signInDialog.close();
+
+    showSnackbar({
+      message: 'Successfully signed in as ' + user.common_name,
+      timeout: 2500
+    });
+
+    setAccountHeader();
   }
+
+  signOutButton.addEventListener('click', () => {
+    user.signedIn = false;
+    user.username = '';
+    user.common_name = '';
+
+    setAccountHeader();
+    showSnackbar({
+      message: 'Successfully signed out.',
+      timeout: 2000
+    });
+  });
 
   signInForm.addEventListener('submit', () => {
     let username = signInUsername.value,
