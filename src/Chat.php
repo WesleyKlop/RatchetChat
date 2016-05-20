@@ -14,11 +14,11 @@ class Chat implements MessageComponentInterface
         $this->clients = new \SplObjectStorage;
     }
 
-
     public function onOpen(ConnectionInterface $conn)
     {
         $this->clients->attach($conn);
 
+        /** @noinspection PhpUndefinedFieldInspection */
         echo "New connection with ID " . $conn->resourceId . PHP_EOL;
     }
 
@@ -26,6 +26,7 @@ class Chat implements MessageComponentInterface
     {
         $numRecv = count($this->clients) - 1;
 
+        /** @noinspection PhpUndefinedFieldInspection */
         echo sprintf('Connection %d sending message "%s" to %d other connection%s' . "\n", $from->resourceId, $msg, $numRecv, $numRecv == 1 ? '' : 's');
 
         foreach ($this->clients as $client) {
@@ -39,6 +40,7 @@ class Chat implements MessageComponentInterface
     {
         $this->clients->detach($conn);
 
+        /** @noinspection PhpUndefinedFieldInspection */
         echo "Connection {$conn->resourceId} has disconnected!\n";
     }
 

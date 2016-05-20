@@ -12,7 +12,7 @@ composer install
 ## Usage
 
 ```shell
-# Start the server
+# Start the server (which gets forked to the background)
 php bin/server.php &
 # Start a webserver for the chat page
 php -S localhost:8080 -t www

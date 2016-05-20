@@ -13,31 +13,32 @@
     signInPassword = document.querySelector('#form-password');
 
   var user = {
-    username: '',
-    common_name: ''
+    username: 'anon',
+    common_name: 'Wesley'
   };
 
 
-  function writeMessage(name, message, picUrl) {
+  function writeMessage(message) {
+    message = JSON.parse(message);
     let container = document.createElement('div');
     container.innerHTML = '<div class="message-container">' +
-      '<div class="spacing"><div class="pic"></div></div>' +
+      '<div class="spacing"></div>' +
       '<div class="message"></div>' +
       '<div class="name"></div>' +
+      '<div class="time">13:37</div>' +
       '</div>';
 
     let messageBox = container.firstChild;
 
-    messageBox.querySelector('.message').innerText = message;
-    if (picUrl && picUrl.length > 0)
-      messageBox.querySelector('.pic').style.backgroundImage = 'url(' + picUrl + ')';
-    messageBox.querySelector('.name').textContent = name;
+    messageBox.querySelector('.message').innerText = message.message;
+    messageBox.querySelector('.name').textContent = message.common_name;
+    messageBox.dataset.username = message.username;
 
     chatBox.appendChild(messageBox);
 
     setTimeout(function() {
       messageBox.classList.add('visible')
-    }, 1);
+    }, 100);
     chatBox.scrollTop = chatBox.scrollHeight;
     msgBox.focus();
   }
@@ -47,18 +48,23 @@
   };
 
   conn.onmessage = (e) => {
-    writeMessage(user.common_name, e.data, null);
+    writeMessage(e.data);
   };
 
   sendBtn.addEventListener('click', function sendMessage() {
-    let message = msgBox.value.trim();
+    let message = {
+      message: msgBox.value.trim(),
+      username: user.username,
+      common_name: user.common_name
+    };
 
     if (conn.readyState != 1
-      || message.length <= 0)
+      || message.message.length <= 0)
       return;
 
+    message = JSON.stringify(message);
     conn.send(message);
-    writeMessage(user.common_name, message);
+    writeMessage(message);
 
     // Clear messageBox
     msgBox.value = '';
@@ -69,7 +75,11 @@
   });
 
   function processResponse(response) {
-    if (response.status != "success") alert(response.response);
+    if (response.status != "success") {
+      alert(response.response);
+      console.error(response);
+      return;
+    }
 
     console.info("user", response.response);
     user = response.response;

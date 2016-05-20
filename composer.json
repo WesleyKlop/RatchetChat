@@ -1,19 +1,19 @@
 {
-    "name": "wesleyklop/chat",
-    "description": "Chat app",
-    "require": {
-        "cboden/ratchet": "^0.3.4",
-        "adldap2/adldap2": "v6.0.15"
-    },
-    "autoload": {
-        "psr-4": {
-            "Chat\\": "src/"
-        },
-        "authors": [
-            {
-                "name": "Wesley",
-                "email": "wesley19097@gmail.com"
-            }
-        ]
+  "name": "wesleyklop/chat",
+  "description": "Chat app",
+  "require": {
+    "cboden/ratchet": "^0.3.4",
+    "adldap2/adldap2": "v6.0.15"
+  },
+  "autoload": {
+    "psr-4": {
+      "Chat\\": "src/"
     }
+  },
+  "authors": [
+    {
+      "name": "Wesley Klop",
+      "email": "wesley19097@gmail.com"
+    }
+  ]
 }

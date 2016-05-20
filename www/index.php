@@ -1,5 +1,5 @@
 <?php
-// $_SERVER['SERVER_ADDR'] seems to be empty when using the built in webserver?
+// $_SERVER['SERVER_ADDR'] seems to be empty when using the built in webServer?
 $serverAddress = $_SERVER['SERVER_ADDR'] ?: 'localhost'; ?><!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,7 +15,6 @@ $serverAddress = $_SERVER['SERVER_ADDR'] ?: 'localhost'; ?><!DOCTYPE html>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.orange-indigo.min.css">
     <script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
-
     <!-- App Styling -->
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&lang=en">
@@ -31,7 +30,7 @@ $serverAddress = $_SERVER['SERVER_ADDR'] ?: 'localhost'; ?><!DOCTYPE html>
                 <h3><i class="material-icons">chat_bubble_outline</i> Ratchet Chat</h3>
             </div>
             <div id="user-container">
-                <div hidden id="user-pic"></div>
+                <!--<div hidden id="user-pic"></div>-->
                 <div hidden id="user-name"></div>
                 <button hidden id="sign-out"
                         class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-color-text--white">

@@ -18,6 +18,18 @@ header('Content-type: application/json');
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+// This catches all exceptions and converts them to JSON so the client can read it
+set_exception_handler(function (Exception $e) {
+    $reflection = new ReflectionClass($e);
+    $response = array(
+        "status" => 'exception',
+        "response" => $e->getMessage(),
+        "code" => $e->getCode(),
+        "type" => $reflection->getShortName()
+    );
+    echo json_encode($response);
+});
+
 // Create a default response which will be edited over the course of this script
 $data = null;
 $response = [
