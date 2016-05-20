@@ -25,7 +25,7 @@
                 "ext-ldap": "*",
                 "illuminate/support": "~5.2",
                 "php": ">=5.5.9"
-            },26 Jul
+            },
             "require-dev": {
                 "mockery/mockery": "0.9.*",
                 "phpunit/phpunit": "4.6.*"
