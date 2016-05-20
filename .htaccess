@@ -1,0 +1,11 @@
+RewriteEngine on
+# Redirect chat to chat/index.php because otherwise you'll get a 404 error
+RewriteRule ^chat.*$ http://77562.ict-lab.nl/chat/index.php [R=301,L]
+# Make it so it behaves like the www folder is the root folder
+RewriteCond %{HTTP_HOST} ^(77562.)ict\-lab.nl$ [NC]
+RewriteCond %{REQUEST_URI} !^/chat/www/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ /chat/www/$1
+RewriteCond %{HTTP_HOST} ^(77562.)ict\-lab.nl$ [NC]
+RewriteRule ^(/)?$ chat/index.php [L]

@@ -2,9 +2,9 @@ html, body {
     font-family: 'Roboto', 'Helvetica', sans-serif;
 }
 
-* {
+/** {
     box-sizing: border-box;
-}
+}*/
 
 main, #messages-card {
     height: 100%;
@@ -99,6 +99,9 @@ main, #messages-card {
 
 .message-container .name {
     display: inline-block;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
     width: 100%;
     padding-left: 40px;
     color: #bbb;
@@ -220,4 +223,8 @@ main, #messages-card {
 .mdl-button .material-icons {
     top: -1px;
     margin-right: 5px;
+}
+
+dialog {
+    z-index: 2147483647;
 }

@@ -24,7 +24,8 @@
     <!-- Header section containing logo -->
     <header class="mdl-layout__header mdl-color-text--white mdl-color--light-blue-700">
         <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-grid">
-            <div class="mdl-layout__header-row mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-cell--12-col-desktop">
+            <div
+                class="mdl-layout__header-row mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-cell--12-col-desktop">
                 <h3><i class="material-icons">chat_bubble_outline</i> Ratchet Chat</h3>
             </div>
             <div id="user-container">
@@ -34,8 +35,8 @@
                         class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-color-text--white">
                     Sign-out
                 </button>
-                <button hidden id="sign-in" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-color-text--white">
-                    <i class="material-icons">account_circle</i>Sign-in with Google
+                <button id="sign-in" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-color-text--white">
+                    <i class="material-icons">account_circle</i>Sign-in
                 </button>
             </div>
         </div>
@@ -69,12 +70,32 @@
                 <button class="mdl-snackbar__action" type="button"></button>
             </div>
 
+            <dialog class="mdl-dialog" id="form-dialog">
+                <h4 class="mdl-dialog__title">Please sign in</h4>
+                <div class="mdl-dialog__content">
+                    <p>Please enter your username and password</p>
+                    <form id="form-signin" action="javascript:void(0)">
+                        <div class="mdl-textfield mdl-js-textfield">
+                            <input class="mdl-textfield__input" type="text" id="form-username"/>
+                            <label class="mdl-textfield__label" for="form-username">Username</label>
+                        </div>
+                        <div class="mdl-textfield mdl-js-textfield">
+                            <input class="mdl-textfield__input" type="password" id="form-password"/>
+                            <label class="mdl-textfield__label" for="form-password">Password</label>
+                        </div>
+                        <input type="submit" id="form-submit" value="Sign In"
+                               class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                    </form>
+                </div>
+            </dialog>
+
         </div>
     </main>
 </div>
 
 <script>
-
+    var socketURL = "ws://<?php echo $_SERVER['SERVER_ADDR']; ?>:1337",
+        loginURL = "./login.php";
 </script>
 <script src="scripts/main.js"></script>
 
