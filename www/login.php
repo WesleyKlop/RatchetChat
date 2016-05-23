@@ -30,6 +30,16 @@ set_exception_handler(function (Exception $e) {
     echo json_encode($response);
 });
 
+function isBanned($username)
+{
+    $dbh = \Chat\Database::getInstance();
+    $stmt = $dbh->prepare("SELECT reason FROM banned_users WHERE user_id = :user_id");
+    $stmt->execute([':user_id' => $username]);
+
+    // Return the reason the user is banned or false
+    return $stmt->fetch(PDO::FETCH_ASSOC)['reason'] ?: false;
+}
+
 // Create a default response which will be edited over the course of this script
 $data = null;
 $response = [
@@ -69,6 +79,13 @@ try {
         /** @var User $user */
         $user = $search->find($username);
 
+        if (($banReason = isBanned($username)) !== false) {
+            $response['type'] = 'ban';
+            $data = "You are banned! \nReason: " . $banReason;
+            echo json_encode($response);
+            exit;
+        }
+
         // Save some user information in the session
         $_SESSION['username'] = $username;
         $_SESSION['common_name'] = $user->getDisplayName();
@@ -86,3 +103,4 @@ try {
 }
 
 echo json_encode($response);
+exit;
