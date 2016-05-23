@@ -1,18 +1,29 @@
 <?php
 namespace Chat;
 
+use Exception;
+use PDO;
+use PDOException;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
+use SplObjectStorage;
 
 class Chat implements MessageComponentInterface
 {
     protected $clients;
 
+    /**
+     * Chat constructor. This creates a storage object to hold the clients
+     */
     public function __construct()
     {
-        $this->clients = new \SplObjectStorage;
+        $this->clients = new SplObjectStorage;
     }
 
+    /**
+     * Triggered when a client opens a connection
+     * @param ConnectionInterface $conn
+     */
     public function onOpen(ConnectionInterface $conn)
     {
         $this->clients->attach($conn);
@@ -21,6 +32,11 @@ class Chat implements MessageComponentInterface
         echo "New connection with ID " . $conn->resourceId . PHP_EOL;
     }
 
+    /**
+     * Triggered when a message is received
+     * @param ConnectionInterface $from
+     * @param string $msg
+     */
     public function onMessage(ConnectionInterface $from, $msg)
     {
         $numRecv = count($this->clients) - 1;
@@ -38,27 +54,29 @@ class Chat implements MessageComponentInterface
     }
 
     /**
-     * Writes a line to the log file.
-     * The log file will looks like `logs/chat-29-12-1997.log`
-     * A line in that file will look like `[13:37:49] (Wesley): This is kind of awesome!`
+     * Writes a row to the log table
      * @param string $message
      */
     private function writeLog($message)
     {
         $message = json_decode($message);
-        $dateTime = new \DateTime();
-        $logFile = "chat-" . $dateTime->format('d-m-Y') . '.log';
-        $logPath = __DIR__ . '/../logs/' . $logFile;
+        $dbh = Database::getInstance();
 
-        $file = fopen($logPath, 'a');
-        $logLine = '[' . $dateTime->format('H:i:s') . '] ';
-        $logLine .= '(' . $message->username . '): ';
-        $logLine .= $message->message;
-        $logLine .= "\n";
-        fwrite($file, $logLine);
-        fclose($file);
+        $stmt = $dbh->prepare("INSERT INTO chat_log (user_id, message) VALUES (:user_id, :message)");
+        $stmt->bindParam(':user_id', $message->username, PDO::PARAM_INT);
+        $stmt->bindParam(':message', $message->message, PDO::PARAM_STR);
+
+        try {
+            $stmt->execute();
+        } catch (PDOException $e) {
+            echo "Error occurred!" . PHP_EOL . $e->getMessage();
+        }
     }
 
+    /**
+     * Triggered wanneer een client de connectie verbreekt
+     * @param ConnectionInterface $conn
+     */
     public function onClose(ConnectionInterface $conn)
     {
         $this->clients->detach($conn);
@@ -67,7 +85,12 @@ class Chat implements MessageComponentInterface
         echo "Connection {$conn->resourceId} has disconnected!\n";
     }
 
-    public function onError(ConnectionInterface $conn, \Exception $e)
+    /**
+     * Triggered wanneer er een error opkomt
+     * @param ConnectionInterface $conn
+     * @param Exception $e
+     */
+    public function onError(ConnectionInterface $conn, Exception $e)
     {
         echo "Error occurred!" . $e->getMessage() . "\n";
 

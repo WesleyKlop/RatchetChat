@@ -1,7 +1,8 @@
+#!/usr/bin/php
 <?php
-use Ratchet\Server\IoServer;
 use Chat\Chat;
 use Ratchet\Http\HttpServer;
+use Ratchet\Server\IoServer;
 use Ratchet\WebSocket\WsServer;
 
 require_once __DIR__ . '/../vendor/autoload.php';

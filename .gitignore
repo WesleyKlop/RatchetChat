@@ -56,3 +56,4 @@ composer.phar
 !/vendor/.htaccess
 logs/*
 !logs/.gitkeep
+src/Database.php
