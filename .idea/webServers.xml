@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="30ab2294-a05a-4008-b70f-1399ff76b397" name="ap25-03" url="http://ap25-03.ict-lab.nl/">
+        <fileTransfer host="ap25-03.ict-lab.nl" port="22" privateKey="$USER_HOME$/.ssh/id_rsa" rootFolder="/home/ap25-03" accessType="SFTP" username="ap25-03" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

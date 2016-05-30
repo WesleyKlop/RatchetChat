@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="ict-lab" stopOnFirstError="true" createEmptyFolders="true" uploadOnCheckin="b300c6f2-8a48-4fff-8ccc-f10654af9308" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="ap25-03" stopOnFirstError="true" createEmptyFolders="true" uploadOnCheckin="b300c6f2-8a48-4fff-8ccc-f10654af9308" autoUploadExternalChanges="true">
     <serverData>
+      <paths name="ap25-03">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/RatchetChat" local="$PROJECT_DIR$/" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="ict-lab">
         <serverdata>
           <mappings>
-            <mapping deploy="/public_html/chat" local="$PROJECT_DIR$/" web="/chat" />
+            <mapping deploy="" local="" web="" />
           </mappings>
         </serverdata>
       </paths>

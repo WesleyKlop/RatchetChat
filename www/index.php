@@ -100,8 +100,8 @@ $serverAddress = $_GET['ws'] ?: $_SERVER['SERVER_ADDR'] ?: 'localhost'; ?><!DOCT
     var socketURL = "ws://<?php echo $serverAddress; ?>:1337",
         loginURL = "./login.php";
 </script>
+<script src="scripts/markdown.min.js"></script>
 <script src="scripts/main.js"></script>
-
 
 </body>
 </html>
