@@ -17,6 +17,11 @@ use Adldap\Query\Builder;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use PDO;
 
+/**
+ * Class Authenticator
+ * This class is used to authenticate and semi-manage users (for now)
+ * @package Chat
+ */
 class Authenticator implements IAuthenticator
 {
     private $adLdap;
@@ -72,6 +77,10 @@ class Authenticator implements IAuthenticator
                 $response['status'] = 'success';
                 $data['username'] = $username;
                 $data['common_name'] = $user->getDisplayName();
+
+                if (!$this->userExists($username)) {
+                    $this->addUser($username, $user->getDisplayName());
+                }
             } else {
                 $data = 'Invalid username or password';
             }
@@ -83,6 +92,11 @@ class Authenticator implements IAuthenticator
         return $response;
     }
 
+    /**
+     * Checks if a user is banned and returns the reason if yes
+     * @param string $username
+     * @return string|bool the reason for the ban or false if not banned
+     */
     public function isBanned($username)
     {
         $dbh = Database::getInstance();
@@ -91,5 +105,36 @@ class Authenticator implements IAuthenticator
 
         // Return the reason the user is banned or false
         return $stmt->fetch(PDO::FETCH_ASSOC)['reason'] ?: false;
+    }
+
+    /**
+     * Checks if the user exists in the users table
+     * @param string $username
+     * @return bool
+     */
+    private function userExists($username)
+    {
+        $dbh = Database::getInstance();
+        $stmt = $dbh->prepare('SELECT user_id FROM users WHERE user_id = :user_id');
+        $stmt->execute([':user_id' => $username]);
+
+        // Returns true if there are more than 0 users
+        return $stmt->rowCount() > 0;
+    }
+
+    /**
+     * Adds a user to the users database
+     * @param string $username
+     * @param string $common_name
+     * @return bool success if the user is added or false
+     */
+    private function addUser($username, $common_name)
+    {
+        $dbh = Database::getInstance();
+        $stmt = $dbh->prepare('INSERT INTO users (user_id, common_name) VALUES (:user_id, :cn)');
+        return $stmt->execute([
+            ':user_id' => $username,
+            ':cn' => $common_name
+        ]);
     }
 }
