@@ -19,4 +19,10 @@ CREATE TABLE chat_log
   datetime TIMESTAMP                          NOT NULL DEFAULT CURRENT_TIMESTAMP,
   user_id  INT(11)                            NOT NULL,
   message  TEXT                               NOT NULL
-)
+);
+
+CREATE TABLE users
+(
+  user_id     INT(11) PRIMARY KEY NOT NULL,
+  common_name VARCHAR(255)        NOT NULL
+);

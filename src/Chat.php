@@ -51,7 +51,6 @@ class Chat implements MessageComponentInterface
                 $from->Session->set('common_name', $user['common_name']);
             }
             $user['type'] = 'verification';
-            var_dump($user);
             $from->send(json_encode($user));
             return;
         }

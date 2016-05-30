@@ -23,7 +23,7 @@ if (!Date.now) {
     snackbar = document.querySelector('#must-signin-snackbar'),
     accountHeader = document.querySelector('#user-name');
 
-  var user = {
+  let user = {
     signedIn: false,
     username: '',
     common_name: ''
@@ -44,9 +44,6 @@ if (!Date.now) {
       hours = date.getHours(),
       minutes = "0" + date.getMinutes(),
       seconds = "0" + date.getSeconds();
-
-    // Replace html tag thingies to prevent raw html placement
-    message.message = message.message.replace('<', '&lt;').replace('>', '&gt;');
 
     // Parse markdown
     messageBox.querySelector('.message').innerHTML = markdown.toHTML(message.message);

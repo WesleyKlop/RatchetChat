@@ -76,6 +76,11 @@ main, #messages-card {
     .message-container .message * {
       margin: 0;
       padding: 0; }
+
+.message-container .message h1, .message-container .message h2 {
+  font-size: 34px;
+  line-height: 40px;
+}
   .message-container .name {
     display: inline-block;
     -webkit-box-sizing: border-box;
