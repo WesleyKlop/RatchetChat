@@ -29,7 +29,6 @@ if (!Date.now) {
     common_name: ''
   };
 
-
   function writeMessage(message) {
     message = JSON.parse(message);
     let container = document.createElement('div');
@@ -50,10 +49,7 @@ if (!Date.now) {
     message.message = message.message.replace('<', '&lt;').replace('>', '&gt;');
 
     // Parse markdown
-    let messageBody = markdown.toHTML(message.message);
-    console.log(messageBody);
-
-    messageBox.querySelector('.message').innerHTML = messageBody;
+    messageBox.querySelector('.message').innerHTML = markdown.toHTML(message.message);
     messageBox.querySelector('.name').textContent = message.common_name;
     messageBox.querySelector('.time').textContent = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
     messageBox.dataset.username = message.username;
@@ -72,7 +68,12 @@ if (!Date.now) {
   };
 
   conn.onmessage = (e) => {
-    writeMessage(e.data);
+    let message = JSON.parse(e.data);
+    console.log(message);
+    if (message.type == 'verification') {
+      processResponse(message);
+    } else
+      writeMessage(e.data);
   };
 
   sendBtn.addEventListener('click', function sendMessage() {
@@ -101,7 +102,7 @@ if (!Date.now) {
 
     message = JSON.stringify(message);
     conn.send(message);
-    writeMessage(message);
+    // writeMessage(message);
 
     // Clear messageBox
     msgBox.value = '';
@@ -133,7 +134,6 @@ if (!Date.now) {
 
   function processResponse(response) {
     if (response.status != "success") {
-      console.error(response);
       let data = {
         message: response.response,
         timeout: 5000
@@ -142,7 +142,6 @@ if (!Date.now) {
       return;
     }
 
-    console.info("user", response.response);
     user = response.response;
     user.signedIn = true;
     signInDialog.close();
@@ -169,18 +168,25 @@ if (!Date.now) {
 
   signInForm.addEventListener('submit', () => {
     let username = signInUsername.value,
-      password = signInPassword.value,
-      queryString = 'username=' + username + '&password=' + password,
-      xhr = new XMLHttpRequest();
+      password = signInPassword.value;
+    let packet = {
+      type: 'verification',
+      username: username,
+      password: password
+    };
 
-    xhr.addEventListener('load', () => {
-      console.log(xhr.responseText);
-      let json = JSON.parse(xhr.responseText);
-      processResponse(json);
-    });
-    xhr.open('post', loginURL, true);
-    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xhr.send(queryString);
+    conn.send(JSON.stringify(packet));
+    //   queryString = 'username=' + username + '&password=' + password,
+    //   xhr = new XMLHttpRequest();
+    //
+    // xhr.addEventListener('load', () => {
+    //   console.log(xhr.responseText);
+    //   let json = JSON.parse(xhr.responseText);
+    //   processResponse(json);
+    // });
+    // xhr.open('post', loginURL, true);
+    // xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    // xhr.send(queryString);
   });
 
   signInCancel.addEventListener('click', (e) => {

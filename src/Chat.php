@@ -10,6 +10,7 @@ use SplObjectStorage;
 
 class Chat implements MessageComponentInterface
 {
+    protected static $authenticator;
     protected $clients;
 
     /**
@@ -18,6 +19,8 @@ class Chat implements MessageComponentInterface
     public function __construct()
     {
         $this->clients = new SplObjectStorage;
+        $config = parse_ini_file(__DIR__ . '/../ldap.ini');
+        self::$authenticator = new Authenticator($config);
     }
 
     /**
@@ -39,6 +42,25 @@ class Chat implements MessageComponentInterface
      */
     public function onMessage(ConnectionInterface $from, $msg)
     {
+        $message = json_decode($msg);
+        if ($message->type == 'verification') {
+            $user = self::$authenticator->authenticate($message->username, $message->password);
+            if ($user['status'] === 'success') {
+                $from->Session->set('authenticated', true);
+                $from->Session->set('username', $user['username']);
+                $from->Session->set('common_name', $user['common_name']);
+            }
+            $user['type'] = 'verification';
+            var_dump($user);
+            $from->send(json_encode($user));
+            return;
+        }
+
+        // Block unauthenticated users
+        if (!$from->Session->get('authenticated')) {
+            return;
+        }
+
         $numRecv = count($this->clients) - 1;
 
         $this->writeLog($msg);
@@ -47,9 +69,9 @@ class Chat implements MessageComponentInterface
         echo sprintf('Connection %d sending message "%s" to %d other connection%s' . "\n", $from->resourceId, $msg, $numRecv, $numRecv == 1 ? '' : 's');
 
         foreach ($this->clients as $client) {
-            if ($from !== $client) {
+//            if ($from !== $client) {
                 $client->send($msg);
-            }
+//            }
         }
     }
 

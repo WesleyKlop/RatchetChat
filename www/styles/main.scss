@@ -83,10 +83,13 @@ main, #messages-card {
     display: table-cell;
     vertical-align: top;
   }
+
+  //noinspection CssInvalidPropertyValue
   .message {
     display: table-cell;
     width: calc(100% - 40px);
     padding: 5px 10px;
+    word-break: break-word;
     * {
       margin: 0;
       padding: 0;

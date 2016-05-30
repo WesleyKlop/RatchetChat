@@ -19,6 +19,7 @@ $serverAddress = $_GET['ws'] ?: $_SERVER['SERVER_ADDR'] ?: 'localhost'; ?><!DOCT
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&lang=en">
     <link rel="stylesheet" href="styles/main.css">
+    <base target="_blank"/>
 </head>
 <body>
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
