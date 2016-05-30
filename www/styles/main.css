@@ -95,6 +95,11 @@ main, #messages-card {
   padding: 5px 10px;
 }
 
+.message-container .message * {
+  margin: 0;
+  padding: 0;
+}
+
 .message-container .name {
     display: inline-block;
     -webkit-box-sizing: border-box;

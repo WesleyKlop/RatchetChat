@@ -46,7 +46,14 @@ if (!Date.now) {
       minutes = "0" + date.getMinutes(),
       seconds = "0" + date.getSeconds();
 
-    messageBox.querySelector('.message').innerText = message.message;
+    // Replace html tag thingies to prevent raw html placement
+    message.message = message.message.replace('<', '&lt;').replace('>', '&gt;');
+
+    // Parse markdown
+    let messageBody = markdown.toHTML(message.message);
+    console.log(messageBody);
+
+    messageBox.querySelector('.message').innerHTML = messageBody;
     messageBox.querySelector('.name').textContent = message.common_name;
     messageBox.querySelector('.time').textContent = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
     messageBox.dataset.username = message.username;
