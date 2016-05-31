@@ -38,6 +38,7 @@ class Chat implements MessageComponentInterface
         $recentMessages = array_reverse($this->getRecentMessages(12));
         // Send the last 12 messages to the user
         foreach ($recentMessages as $message) {
+            $message['flags'] = 'silent';
             $conn->send(json_encode($message));
         }
     }
@@ -47,7 +48,7 @@ class Chat implements MessageComponentInterface
         $dbh = Database::getInstance();
         $stmt = $dbh->prepare(
             "SELECT
-  chat_log.user_id,
+  chat_log.user_id                  AS username,
   UNIX_TIMESTAMP(chat_log.datetime) AS time,
   chat_log.message,
   users.common_name

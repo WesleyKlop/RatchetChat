@@ -20,6 +20,8 @@ $serverAddress = $_GET['ws'] ?: $_SERVER['SERVER_ADDR'] ?: 'localhost'; ?><!DOCT
           href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&lang=en">
     <link rel="stylesheet" href="styles/main.css">
     <base target="_blank"/>
+    <script src="node_modules/dialog-polyfill/dialog-polyfill.js"></script>
+    <link rel="stylesheet" href="node_modules/dialog-polyfill/dialog-polyfill.css"/>
 </head>
 <body>
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
@@ -73,35 +75,33 @@ $serverAddress = $_GET['ws'] ?: $_SERVER['SERVER_ADDR'] ?: 'localhost'; ?><!DOCT
                 <button class="mdl-snackbar__action" type="button"></button>
             </div>
 
-            <dialog class="mdl-dialog" id="form-dialog">
-                <h4 class="mdl-dialog__title">Please sign in</h4>
-                <div class="mdl-dialog__content">
-                    <p>Please enter your username and password</p>
-                    <form id="form-signin" action="javascript:void(0)">
-                        <div class="mdl-textfield mdl-js-textfield">
-                            <input class="mdl-textfield__input" type="text" id="form-username"/>
-                            <label class="mdl-textfield__label" for="form-username">Username</label>
-                        </div>
-                        <div class="mdl-textfield mdl-js-textfield">
-                            <input class="mdl-textfield__input" type="password" id="form-password"/>
-                            <label class="mdl-textfield__label" for="form-password">Password</label>
-                        </div>
-                        <input type="submit" id="form-submit" value="Sign In"
-                               class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
-                        <button id="form-cancel" class="mdl-button mdl-js-button mdl-js-ripple-effect">cancel</button>
-                    </form>
-                </div>
-            </dialog>
 
         </div>
     </main>
 </div>
-
+<dialog class="mdl-dialog" id="form-dialog">
+    <h4 class="mdl-dialog__title">Please sign in</h4>
+    <div class="mdl-dialog__content">
+        <p>Please enter your username and password</p>
+        <form id="form-signin" action="javascript:void(0)">
+            <div class="mdl-textfield mdl-js-textfield">
+                <input class="mdl-textfield__input" type="text" id="form-username"/>
+                <label class="mdl-textfield__label" for="form-username">Username</label>
+            </div>
+            <div class="mdl-textfield mdl-js-textfield">
+                <input class="mdl-textfield__input" type="password" id="form-password"/>
+                <label class="mdl-textfield__label" for="form-password">Password</label>
+            </div>
+            <input type="submit" id="form-submit" value="Sign In"
+                   class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+            <button id="form-cancel" class="mdl-button mdl-js-button mdl-js-ripple-effect">cancel</button>
+        </form>
+    </div>
+</dialog>
 <script>
-    var socketURL = "ws://<?php echo $serverAddress; ?>:1337",
-        loginURL = "./login.php";
+    var socketURL = "ws://<?php echo $serverAddress; ?>:1337";
 </script>
-<script src="scripts/markdown.min.js"></script>
+<script src="node_modules/markdown/lib/markdown.js"></script>
 <script src="scripts/main.js"></script>
 
 </body>

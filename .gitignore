@@ -44,7 +44,7 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 ### Composer template
-/vendor/*
+vendor/
 composer.phar
 
 # Commit your application's lock file http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file
@@ -53,7 +53,5 @@ composer.phar
 
 ### Manually added
 /ldap.ini
-!/vendor/.htaccess
-logs/*
-!logs/.gitkeep
 src/Database.php
+node_modules/

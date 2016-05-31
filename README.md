@@ -1,23 +1,17 @@
 # RatchetChat
-A Websocket based chat system using Ratchet and Adldap for authentication
+A Websocket based chat system using Ratchet and Adldap2
 
 ## Installation
 
 ```shell
-git clone "https://github.com/WesleyKlop/RatchetChat" && cd RatchetChat
-# Install dependencies
-composer install
+TODO:
 ```
 
 ## Usage
 
 ```shell
-# Start the server (which gets forked to the background)
-php bin/server.php &
-# Start a webserver for the chat page
-php -S localhost:8080 -t www
+TODO:
 ```
-Now open your browser and go to `localhost:8080` and enjoy your chat system!
 
 ## Contributing
 
@@ -29,7 +23,14 @@ Now open your browser and go to `localhost:8080` and enjoy your chat system!
 
 ## Credits
 
-The creators and developers of the Ratchet library!
+#### PHP
+* composer/composer
+* ratchetphp/Ratchet
+* Adldap2/Adldap2
+
+#### JS
+* GoogleChrome/dialog-polyfill
+* evilstreak/markdown-js
 
 ## License
 

@@ -189,9 +189,6 @@ main, #messages-card {
   top: -1px;
   margin-right: 5px; }
 
-dialog {
-  z-index: 2147483647; }
-
 header h3 a {
   z-index: 2147483647;
   text-decoration: none;

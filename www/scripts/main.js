@@ -8,7 +8,7 @@ if (!Date.now) {
   }
 }
 
-((socketURL, loginURL) => {
+((socketURL) => {
   let conn = new WebSocket(socketURL),
     sendBtn = document.querySelector('#submit'),
     chatBox = document.querySelector('#messages'),
@@ -51,6 +51,27 @@ if (!Date.now) {
     messageBox.querySelector('.time').textContent = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
     messageBox.dataset.username = message.username;
 
+    // Send a notification if the message is not send by the user
+    if (message.username !== user.username && !message.flags) {
+      if (!('Notification' in window)) {
+        console.log("Client does not support nofications, fuck (s)he's old");
+      } else if (Notification.permission === 'granted') {
+        new Notification("New message!", {
+          body: message.common_name + ": " + message.message,
+          tag: "Ratchet Chat"
+        });
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission(function(permission) {
+          if (permission === 'granted') {
+            new Notification("New message!", {
+              body: message.common_name + ": " + message.message,
+              tag: "Ratchet Chat"
+            });
+          }
+        });
+      }
+    }
+
     chatBox.appendChild(messageBox);
 
     setTimeout(function() {
@@ -61,19 +82,21 @@ if (!Date.now) {
   }
 
   conn.onopen = () => {
-    console.log("Connection with", socketURL, "is established!");
+    console.info("Connection with", socketURL, "is established!");
   };
 
   conn.onmessage = (e) => {
     let message = JSON.parse(e.data);
-    console.log(message);
     if (message.type == 'verification') {
       processResponse(message);
-    } else
+    } else {
       writeMessage(e.data);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
   };
 
-  sendBtn.addEventListener('click', function sendMessage() {
+  sendBtn.addEventListener('click', (e) => {
+    e.preventDefault();
     let message = {
       message: msgBox.value.trim(),
       username: user.username,
@@ -91,22 +114,22 @@ if (!Date.now) {
         timeout: 2000,
         actionText: 'Sign in',
         actionHandler: () => {
-          signInDialog.show();
+          signInDialog.showModal();
         }
       });
       return;
     }
 
     message = JSON.stringify(message);
+    //noinspection JSCheckFunctionSignatures
     conn.send(message);
-    // writeMessage(message);
 
     // Clear messageBox
     msgBox.value = '';
   });
 
   signInButton.addEventListener('click', () => {
-    signInDialog.show();
+    signInDialog.showModal();
   });
 
   function showSnackbar(data) {
@@ -163,7 +186,8 @@ if (!Date.now) {
     });
   });
 
-  signInForm.addEventListener('submit', () => {
+  signInForm.addEventListener('submit', (e) => {
+    e.preventDefault();
     let username = signInUsername.value,
       password = signInPassword.value;
     let packet = {
@@ -173,17 +197,6 @@ if (!Date.now) {
     };
 
     conn.send(JSON.stringify(packet));
-    //   queryString = 'username=' + username + '&password=' + password,
-    //   xhr = new XMLHttpRequest();
-    //
-    // xhr.addEventListener('load', () => {
-    //   console.log(xhr.responseText);
-    //   let json = JSON.parse(xhr.responseText);
-    //   processResponse(json);
-    // });
-    // xhr.open('post', loginURL, true);
-    // xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    // xhr.send(queryString);
   });
 
   signInCancel.addEventListener('click', (e) => {
@@ -191,4 +204,18 @@ if (!Date.now) {
     signInDialog.close();
   });
 
-})(socketURL, loginURL);
+})(socketURL);
+
+(() => {
+  //noinspection JSUnresolvedVariable
+  if (typeof HTMLDialogElement === 'function') {
+    return;
+  }
+  let allDialogs = document.querySelectorAll('dialog');
+  for (let key in allDialogs) {
+    if (allDialogs.hasOwnProperty(key)) {
+      let dialog = allDialogs[key];
+      dialogPolyfill.registerDialog(dialog);
+    }
+  }
+})();
