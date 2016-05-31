@@ -52,6 +52,7 @@ if (!Date.now) {
     messageBox.dataset.username = message.username;
 
     // Send a notification if the message is not send by the user
+    //noinspection JSUnresolvedVariable
     if (message.username !== user.username && !message.flags) {
       if (!('Notification' in window)) {
         console.log("Client does not support nofications, fuck (s)he's old");
@@ -109,6 +110,7 @@ if (!Date.now) {
       return;
 
     if (!user.signedIn) {
+      //noinspection JSUnusedGlobalSymbols
       showSnackbar({
         message: 'You must sign in first',
         timeout: 2000,

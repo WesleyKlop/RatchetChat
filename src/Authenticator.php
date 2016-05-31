@@ -55,7 +55,7 @@ class Authenticator implements IAuthenticator
         $data = null;
         $response = [
             'status' => 'failure',
-            'response' => &$data
+            'response' => null
         ];
 
         // Try authenticating
@@ -70,8 +70,8 @@ class Authenticator implements IAuthenticator
                 if (($banReason = $this->isBanned($username)) !== false) {
                     $response['type'] = 'ban';
                     $data = "You are banned! \nReason: " . $banReason;
-                    echo json_encode($response);
-                    exit;
+                    $response['response'] = $data;
+                    return $response;
                 }
 
                 $response['status'] = 'success';
@@ -89,6 +89,7 @@ class Authenticator implements IAuthenticator
         } catch (PasswordRequiredException $e) {
             $data = 'Missing password';
         }
+        $response['response'] = $data;
         return $response;
     }
 
