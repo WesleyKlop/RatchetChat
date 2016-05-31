@@ -9,6 +9,8 @@
 namespace Chat;
 
 
+use PDOStatement;
+
 interface IDatabase
 {
     /**
@@ -21,7 +23,14 @@ interface IDatabase
      * Queries the Database
      * @param string $sql the sql query to execute
      * @param int $mode Fetch mode
-     * @return \PDOStatement
+     * @return PDOStatement
      */
     public static function query($sql, $mode = \PDO::ATTR_DEFAULT_FETCH_MODE);
+
+    /**
+     * The same as doing IDatabase::getInstance()->prepare($sql)
+     * @param string $sql
+     * @return PDOStatement
+     */
+    public static function prepare($sql);
 }

@@ -90,19 +90,41 @@ LIMIT :message_limit"
 
         $numRecv = count($this->clients) - 1;
 
+        // Filter bad words! naughty naughty
+        $message->message = $this->filter_bad_words($message->message);
+
         $this->writeLog($message);
 
         /** @noinspection PhpUndefinedFieldInspection */
         echo sprintf('Connection %d sending message "%s" to %d other connection%s' . "\n", $from->resourceId, $msg, $numRecv, $numRecv == 1 ? '' : 's');
 
         foreach ($this->clients as $client) {
-            $client->send($msg);
+            $client->send(json_encode($message));
         }
     }
 
     /**
-     * Writes a row to the log table
+     * Case insensitive replacement of bad words fetched from the banned_words table
      * @param string $message
+     * @return string the new message
+     */
+    private function filter_bad_words($message)
+    {
+        $stmt = Database::prepare('SELECT bad_word,replacement FROM banned_words');
+        $stmt->execute();
+
+        $words = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($words as $word) {
+            $message = str_ireplace($word['bad_word'], $word['replacement'], $message);
+        }
+
+        return $message;
+    }
+
+    /**
+     * Writes a row to the log table
+     * @param mixed $message
      */
     private function writeLog($message)
     {
