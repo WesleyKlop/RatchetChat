@@ -6,10 +6,10 @@
  * Time: 9:39
  */
 
-namespace Chat;
+namespace Chat\Auth;
 
 
-interface IAuthenticator
+interface AuthInterface
 {
     /**
      * Authenticates a user

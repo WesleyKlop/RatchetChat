@@ -3,11 +3,13 @@
   "description": "Chat app",
   "require": {
     "cboden/ratchet": "^0.3.4",
-    "adldap2/adldap2": "v6.0.15"
+    "adldap2/adldap2": "v6.0.15",
+    "vlucas/phpdotenv": "^2.2",
+    "fpdo/fluentpdo": "^1.0"
   },
   "autoload": {
     "psr-4": {
-      "Chat\\": "src/"
+      "Chat\\": "app/"
     }
   },
   "authors": [

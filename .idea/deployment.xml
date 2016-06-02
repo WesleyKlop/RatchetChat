@@ -1,18 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="ap25-03" stopOnFirstError="true" createEmptyFolders="true" uploadOnCheckin="30ab2294-a05a-4008-b70f-1399ff76b397" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="ap25-03" stopOnFirstError="true" createEmptyFolders="true" uploadOnCheckin="30ab2294-a05a-4008-b70f-1399ff76b397" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;node_modules;vendor" autoUploadExternalChanges="true" compareModeInSync="SIZE">
     <serverData>
       <paths name="ap25-03">
         <serverdata>
           <mappings>
             <mapping deploy="/RatchetChat" local="$PROJECT_DIR$/" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="ict-lab">
-        <serverdata>
-          <mappings>
-            <mapping deploy="" local="" web="" />
           </mappings>
         </serverdata>
       </paths>

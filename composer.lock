@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "ade3ad7d91bd3ccf707a47598518e8ef",
-    "content-hash": "21515ab696033f992433c4d267461884",
+    "hash": "c91f5451e4a1b08648dfc40297b23fe5",
+    "content-hash": "ceb09d1c49bebafef5eb6813ff5a0c99",
     "packages": [
         {
             "name": "adldap2/adldap2",
@@ -219,6 +219,46 @@
                 "event-emitter"
             ],
             "time": "2012-11-02 14:49:47"
+        },
+        {
+            "name": "fpdo/fluentpdo",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/fpdo/fluentpdo.git",
+                "reference": "8a34b9c6742544bda9d193e814101cd065d88875"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/fpdo/fluentpdo/zipball/8a34b9c6742544bda9d193e814101cd065d88875",
+                "reference": "8a34b9c6742544bda9d193e814101cd065d88875",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "FluentPDO/FluentPDO.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0",
+                "GPL-2.0+"
+            ],
+            "authors": [
+                {
+                    "name": "Marek Lichtner",
+                    "homepage": "http://licht.sk/"
+                }
+            ],
+            "description": "FluentPDO is small PHP library for rapid query building. Killer feature is smart join builder which generates joins automatically.",
+            "homepage": "http://fluentpdo.com/",
+            "keywords": [
+                "database",
+                "dbal",
+                "pdo"
+            ],
+            "time": "2015-02-24 20:50:47"
         },
         {
             "name": "guzzle/common",
@@ -947,6 +987,56 @@
                 "url"
             ],
             "time": "2016-05-03 12:23:49"
+        },
+        {
+            "name": "vlucas/phpdotenv",
+            "version": "v2.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/vlucas/phpdotenv.git",
+                "reference": "63f37b9395e8041cd4313129c08ece896d06ca8e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/vlucas/phpdotenv/zipball/63f37b9395e8041cd4313129c08ece896d06ca8e",
+                "reference": "63f37b9395e8041cd4313129c08ece896d06ca8e",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.9"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.8 || ^5.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.2-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Dotenv\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause-Attribution"
+            ],
+            "authors": [
+                {
+                    "name": "Vance Lucas",
+                    "email": "vance@vancelucas.com",
+                    "homepage": "http://www.vancelucas.com"
+                }
+            ],
+            "description": "Loads environment variables from `.env` to `getenv()`, `$_ENV` and `$_SERVER` automagically.",
+            "keywords": [
+                "dotenv",
+                "env",
+                "environment"
+            ],
+            "time": "2016-04-15 10:48:49"
         }
     ],
     "packages-dev": [],

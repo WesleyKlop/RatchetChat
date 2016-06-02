@@ -1,9 +1,12 @@
 <?php
 namespace Chat;
 
+use Chat\Auth\LdapAuthenticator;
+use Chat\Config\Config;
+use Chat\Db\Db;
 use Exception;
+use FluentLiteral;
 use PDO;
-use PDOException;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
 use SplObjectStorage;
@@ -19,8 +22,7 @@ class Chat implements MessageComponentInterface
     public function __construct()
     {
         $this->clients = new SplObjectStorage;
-        $config = parse_ini_file(__DIR__ . '/../ldap.ini');
-        self::$authenticator = new Authenticator($config);
+        self::$authenticator = new LdapAuthenticator(Config::get('ldap'));
     }
 
     /**
@@ -35,7 +37,9 @@ class Chat implements MessageComponentInterface
         echo "New connection with ID " . $conn->resourceId . PHP_EOL;
 
         // Reverse the messages so they are in the correct order
-        $recentMessages = array_reverse($this->getRecentMessages(12));
+        $recents = $this->getRecentMessages(12);
+        var_dump($recents);
+        $recentMessages = array_reverse($recents);
         // Send the last 12 messages to the user
         foreach ($recentMessages as $message) {
             $message['flags'] = 'silent';
@@ -45,23 +49,23 @@ class Chat implements MessageComponentInterface
 
     private function getRecentMessages($limit)
     {
-        $dbh = Database::getInstance();
-        $stmt = $dbh->prepare(
-            "SELECT
-  chat_log.user_id                  AS username,
-  UNIX_TIMESTAMP(chat_log.datetime) AS time,
-  chat_log.message,
-  users.common_name
-FROM chat_log, users
-WHERE users.user_id = chat_log.user_id
-ORDER BY chat_log.datetime DESC
-LIMIT :message_limit"
-        );
-        $stmt->bindParam(':message_limit', $limit, PDO::PARAM_INT);
+        $stmt = Db::getInstance()
+            ->from('chat_log')
+            ->select([
+                'chat_log.user_id AS username',
+                'chat_log.message',
+                'users.common_name',
+                new FluentLiteral('UNIX_TIMESTAMP(chat_log.datetime) AS time')
+            ])
+            ->leftJoin('users ON users.user_id = chat_log.user_id')
+            ->orderBy('chat_log.datetime DESC')
+            ->limit($limit);
 
-        $stmt->execute();
+        var_dump($stmt->getQuery());
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt
+            ->execute()
+            ->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -111,10 +115,10 @@ LIMIT :message_limit"
      */
     private function filter_bad_words($message)
     {
-        $stmt = Database::prepare('SELECT bad_word,replacement FROM banned_words');
-        $stmt->execute();
+        $words = Db::getInstance()
+            ->from('banned_words')
+            ->select(['bad_word', 'replacement']);
 
-        $words = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($words as $word) {
             $message = str_ireplace($word['bad_word'], $word['replacement'], $message);
@@ -126,20 +130,15 @@ LIMIT :message_limit"
     /**
      * Writes a row to the log table
      * @param mixed $message
+     * @return int
      */
     private function writeLog($message)
     {
-        $dbh = Database::getInstance();
-
-        $stmt = $dbh->prepare("INSERT INTO chat_log (user_id, message) VALUES (:user_id, :message)");
-        $stmt->bindParam(':user_id', $message->username, PDO::PARAM_INT);
-        $stmt->bindParam(':message', $message->message, PDO::PARAM_STR);
-
-        try {
-            $stmt->execute();
-        } catch (PDOException $e) {
-            echo "Error occurred!" . PHP_EOL . $e->getMessage();
-        }
+        return Db::getInstance()
+            ->insertInto('chat_log', [
+                'user_id' => $message->username,
+                'message' => $message->message
+            ])->execute();
     }
 
     /**
