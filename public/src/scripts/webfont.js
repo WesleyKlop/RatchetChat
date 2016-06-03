@@ -1,3 +1,4 @@
+//noinspection JSUnusedGlobalSymbols
 let WebFontConfig = {
   google: {families: ['Roboto:regular,bold,italic,thin,light,bolditalic,black,medium', 'Material+Icons']}
 };

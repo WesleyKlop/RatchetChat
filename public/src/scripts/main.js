@@ -1,13 +1,7 @@
 /**
  * Created by wesley on 5/19/16.
+ * Main application script.
  */
-// Timestamp shim
-if (!Date.now) {
-  Date.now = function() {
-    return new Date().getTime();
-  }
-}
-
 ((socketURL) => {
   let conn = new WebSocket(socketURL),
     sendBtn = document.querySelector('#submit'),
@@ -151,7 +145,7 @@ if (!Date.now) {
   });
 
   let showSnackbar = (data) => {
-    snackbar.MaterialSnackbar.showSnackbar(data);
+    snackbar.MaterialSnackbar.prototype.showSnackbar(data);
   };
 
   let setAccountHeader = () => {
@@ -228,17 +222,3 @@ if (!Date.now) {
   });
 
 })(socketURL);
-
-(() => {
-  //noinspection JSUnresolvedVariable
-  if (typeof HTMLDialogElement === 'function') {
-    return;
-  }
-  let allDialogs = document.querySelectorAll('dialog');
-  for (let key in allDialogs) {
-    if (allDialogs.hasOwnProperty(key)) {
-      let dialog = allDialogs[key];
-      dialogPolyfill.registerDialog(dialog);
-    }
-  }
-})();

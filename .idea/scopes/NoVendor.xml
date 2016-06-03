@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="NoVendor" pattern="file[RatchetChat]:*/&amp;&amp;!file[RatchetChat]:vendor//*&amp;&amp;!file[RatchetChat]:www/node_modules//*&amp;&amp;!file[RatchetChat]:node_modules//*" />
+</component>

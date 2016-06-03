@@ -38,6 +38,7 @@ const paths = {
   }
 };
 
+//noinspection JSUnresolvedFunction
 /**
  * Compile sass and write sourcemaps
  */
