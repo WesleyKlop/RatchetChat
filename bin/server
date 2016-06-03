@@ -21,6 +21,7 @@ $server = IoServer::factory(
     Config::get('app.port')
 );
 
+echo shell_exec('clear');
 echo "Starting websocket server on " . Config::get('app.host') . ':' . Config::get('app.port') . PHP_EOL;
 
 $server->run();

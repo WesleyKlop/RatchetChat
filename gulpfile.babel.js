@@ -26,7 +26,9 @@ const paths = {
     images: 'public/src/images/*',
     html: 'public/src/*.html',
     copy: [
-      'public/src/.htaccess'
+      'public/src/.htaccess',
+      'public/src/manifest.json',
+      'public/src/manifest.webapp'
     ]
   },
   dest: {
