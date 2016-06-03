@@ -29,7 +29,7 @@ if (!Date.now) {
     common_name: ''
   };
 
-  function writeMessage(message) {
+  let writeMessage = (message) => {
     message = JSON.parse(message);
     let container = document.createElement('div');
     container.innerHTML = '<div class="message-container">' +
@@ -76,14 +76,30 @@ if (!Date.now) {
     chatBox.appendChild(messageBox);
 
     setTimeout(function() {
-      messageBox.classList.add('visible')
+      messageBox.classList.add('visible');
+      chatBox.scrollTop = chatBox.scrollHeight;
     }, 100);
-    chatBox.scrollTop = chatBox.scrollHeight;
+
     msgBox.focus();
-  }
+  };
 
   conn.onopen = () => {
     console.info("Connection with", socketURL, "is established!");
+
+    /*
+     * Try automagically signing in using localstorage
+     * TODO: This is not secure! the password should be hashed in the local storage but I don't know how I would do that
+     */
+    if (conn.readyState == 1
+      && localStorage.getItem('username')
+      && localStorage.getItem('password')) {
+      conn.send(JSON.stringify({
+        type: 'verification',
+        flags: 'silent',
+        username: localStorage.getItem('username'),
+        password: localStorage.getItem('password')
+      }));
+    }
   };
 
   conn.onmessage = (e) => {
@@ -134,11 +150,11 @@ if (!Date.now) {
     signInDialog.showModal();
   });
 
-  function showSnackbar(data) {
+  let showSnackbar = (data) => {
     snackbar.MaterialSnackbar.showSnackbar(data);
-  }
+  };
 
-  function setAccountHeader() {
+  let setAccountHeader = () => {
     if (user.signedIn) {
       accountHeader.textContent = user.common_name;
       accountHeader.removeAttribute('hidden');
@@ -152,29 +168,34 @@ if (!Date.now) {
       signOutButton.setAttribute('hidden', 'true');
       signInButton.removeAttribute('hidden');
     }
-  }
+  };
 
-  function processResponse(response) {
+  let processResponse = (response) => {
+    console.log(response);
     if (response.status != "success") {
-      let data = {
-        message: response.response,
-        timeout: 5000
-      };
-      showSnackbar(data);
+      if (response.flags != 'silent')
+        showSnackbar({
+          message: response.response,
+          timeout: 5000
+        });
       return;
     }
 
     user = response.response;
     user.signedIn = true;
-    signInDialog.close();
 
-    showSnackbar({
-      message: 'Successfully signed in as ' + user.common_name,
-      timeout: 2500
-    });
+    // If the silent flag exists the auth wasn't called from a dialog so we can't close it...
+    if (response.flags != 'silent') {
+      signInDialog.close();
+
+      showSnackbar({
+        message: 'Successfully signed in as ' + user.common_name,
+        timeout: 2500
+      });
+    }
 
     setAccountHeader();
-  }
+  };
 
   signOutButton.addEventListener('click', () => {
     user.signedIn = false;

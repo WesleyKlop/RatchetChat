@@ -7,5 +7,6 @@
  */
 return [
     'debug' => getenv('APP_DEBUG'),
-    'url' => getenv('APP_URL'),
+    'host' => getenv('APP_HOST'),
+    'port' => getenv('APP_PORT'),
 ];

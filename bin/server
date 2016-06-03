@@ -1,6 +1,7 @@
 #!/usr/bin/php
 <?php
 use Chat\Chat;
+use Chat\Config\Config;
 use Ratchet\Http\HttpServer;
 use Ratchet\Server\IoServer;
 use Ratchet\Session\SessionProvider;
@@ -17,7 +18,9 @@ $server = IoServer::factory(
             )
         )
     ),
-    1337
+    Config::get('app.port')
 );
+
+echo "Starting websocket server on " . Config::get('app.host') . ':' . Config::get('app.port') . PHP_EOL;
 
 $server->run();

@@ -38,7 +38,6 @@ class Chat implements MessageComponentInterface
 
         // Reverse the messages so they are in the correct order
         $recents = $this->getRecentMessages(12);
-        var_dump($recents);
         $recentMessages = array_reverse($recents);
         // Send the last 12 messages to the user
         foreach ($recentMessages as $message) {
@@ -47,9 +46,14 @@ class Chat implements MessageComponentInterface
         }
     }
 
+    /**
+     * Returns an array containing the last send messages
+     * @param $limit
+     * @return array
+     */
     private function getRecentMessages($limit)
     {
-        $stmt = Db::getInstance()
+        return Db::getInstance()
             ->from('chat_log')
             ->select([
                 'chat_log.user_id AS username',
@@ -59,11 +63,7 @@ class Chat implements MessageComponentInterface
             ])
             ->leftJoin('users ON users.user_id = chat_log.user_id')
             ->orderBy('chat_log.datetime DESC')
-            ->limit($limit);
-
-        var_dump($stmt->getQuery());
-
-        return $stmt
+            ->limit($limit)
             ->execute()
             ->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -84,6 +84,8 @@ class Chat implements MessageComponentInterface
                 $from->Session->set('common_name', $user['common_name']);
             }
             $user['type'] = 'verification';
+            if ($message->flags == 'silent')
+                $user['flags'] = 'silent';
             $from->send(json_encode($user));
             return;
         }
@@ -93,16 +95,16 @@ class Chat implements MessageComponentInterface
             return;
         }
 
-        $numRecv = count($this->clients) - 1;
-
-        // Filter bad words! naughty naughty
+        // Filter bad words
         $message->message = $this->filter_bad_words($message->message);
 
+        // Write to log table
         $this->writeLog($message);
 
-        /** @noinspection PhpUndefinedFieldInspection */
-        echo sprintf('Connection %d sending message "%s" to %d other connection%s' . "\n", $from->resourceId, $msg, $numRecv, $numRecv == 1 ? '' : 's');
+        // Write the message to STDOUT
+        echo '[' . date('G:i:s', $message->time) . '] (ID ' . $from->resourceId . ')' . $message->username . ': ' . $message->message . PHP_EOL;
 
+        // Send the message to all connected clients
         foreach ($this->clients as $client) {
             $client->send(json_encode($message));
         }
@@ -118,7 +120,6 @@ class Chat implements MessageComponentInterface
         $words = Db::getInstance()
             ->from('banned_words')
             ->select(['bad_word', 'replacement']);
-
 
         foreach ($words as $word) {
             $message = str_ireplace($word['bad_word'], $word['replacement'], $message);

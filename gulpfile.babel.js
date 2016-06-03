@@ -13,92 +13,92 @@ import concat from "gulp-concat";
 import del from "del";
 
 const paths = {
-    src: {
-        js: [
-            'public/src/scripts/*.js',
-            'node_modules/dialog-polyfill/dialog-polyfill.js',
-            'node_modules/markdown/lib/markdown.js'
-        ],
-        sass: [
-            'public/src/styles/*.scss',
-            'node_modules/dialog-polyfill/dialog-polyfill.css'
-        ],
-        images: 'public/src/images/*',
-        html: 'public/src/*.html',
-        copy: [
-            'public/src/.htaccess'
-        ]
-    },
-    dest: {
-        js: 'public/build/scripts/',
-        sass: 'public/build/styles/',
-        images: 'public/build/images/',
-        html: 'public/build/',
-        copy: 'public/build/'
-    }
+  src: {
+    js: [
+      'public/src/scripts/*.js',
+      'node_modules/dialog-polyfill/dialog-polyfill.js',
+      'node_modules/markdown/lib/markdown.js'
+    ],
+    sass: [
+      'public/src/styles/*.scss',
+      'node_modules/dialog-polyfill/dialog-polyfill.css'
+    ],
+    images: 'public/src/images/*',
+    html: 'public/src/*.html',
+    copy: [
+      'public/src/.htaccess'
+    ]
+  },
+  dest: {
+    js: 'public/build/scripts/',
+    sass: 'public/build/styles/',
+    images: 'public/build/images/',
+    html: 'public/build/',
+    copy: 'public/build/'
+  }
 };
 
 /**
  * Compile sass and write sourcemaps
  */
 gulp.task('style', () => pump([
-    gulp.src(paths.src.sass),
-    sourcemaps.init(),
-    sass().on('error', sass.logError),
-    autoprefixer(),
-    concat('package.min.css'),
-    sourcemaps.write('.'),
-    gulp.dest(paths.dest.sass)
+  gulp.src(paths.src.sass),
+  sourcemaps.init(),
+  sass().on('error', sass.logError),
+  autoprefixer(),
+  concat('package.min.css'),
+  sourcemaps.write('.'),
+  gulp.dest(paths.dest.sass)
 ]));
 
 /**
  * Compile JavaScript using babel and uglify
  */
 gulp.task('compress', () => pump([
-    gulp.src(paths.src.js),
-    sourcemaps.init(),
-    babel(),
-    uglify(),
-    concat('package.min.js'),
-    sourcemaps.write(),
-    gulp.dest(paths.dest.js)
+  gulp.src(paths.src.js),
+  sourcemaps.init(),
+  babel(),
+  concat('package.min.js'),
+  uglify(),
+  sourcemaps.write(),
+  gulp.dest(paths.dest.js)
 ]));
 
 /**
  * Optimize images
  */
 gulp.task('imagemin', () => pump([
-    gulp.src(paths.src.images),
-    imagemin(),
-    gulp.dest(paths.dest.images)
+  gulp.src(paths.src.images),
+  imagemin(),
+  gulp.dest(paths.dest.images)
 ]));
 
 /**
  * Minify HTML
  */
 gulp.task('htmlmin', () => pump([
-    gulp.src(paths.src.html),
-    htmlmin({collapseWhitespace: true}),
-    gulp.dest(paths.dest.html)
+  gulp.src(paths.src.html),
+  htmlmin({collapseWhitespace: true}),
+  gulp.dest(paths.dest.html)
 ]));
 
 /**
  * Copy some files that don't need any other things
  */
 gulp.task('copy', () => pump([
-    gulp.src(paths.src.copy),
-    gulp.dest(paths.dest.copy)
+  gulp.src(paths.src.copy),
+  gulp.dest(paths.dest.copy)
 ]));
 
 /**
  * Watch files and automatically build
  */
 gulp.task('watch', () => {
-    gulp.watch(paths.src.html, ['htmlmin']);
-    gulp.watch(paths.src.images, ['imagemin']);
-    gulp.watch(paths.src.copy, ['copy']);
-    gulp.watch(paths.src.js, ['compress']);
-    gulp.watch(paths.src.style, ['style']);
+  gulp.watch(paths.src.html, ['htmlmin']);
+  gulp.watch(paths.src.images, ['imagemin']);
+  gulp.watch(paths.src.copy, ['copy']);
+  gulp.watch(paths.src.js, ['compress']);
+  gulp.watch(paths.src.style, ['style']);
 });
 
 /**
