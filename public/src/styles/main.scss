@@ -122,18 +122,9 @@ main, #messages-card {
 #message-form {
   display: flex;
   flex-direction: row;
-  width: calc(100% - 48px);
+  width: 100%;
   float: left;
-}
 
-#image-form {
-  display: flex;
-  flex-direction: row;
-  width: 48px;
-  float: right;
-}
-
-#message-form {
   .mdl-textfield {
     width: calc(100% - 100px);
   }
@@ -141,11 +132,6 @@ main, #messages-card {
     width: 100px;
     margin: 15px 0 0 10px;
   }
-}
-
-#image-form button {
-  width: 100px;
-  margin: 15px 0 0 10px;
 }
 
 .mdl-card {
@@ -182,28 +168,15 @@ main, #messages-card {
   }
 }
 
-#image-form #submitImage {
-  width: auto;
-  padding: 0 6px 0 1px;
-  min-width: 0;
-  .material-icons {
-    top: -1px;
-  }
-}
-
 .message img {
   max-width: 300px;
   max-height: 200px;
 }
 
-#mediaCapture {
-  display: none;
-}
-
 @media screen and (max-width: 610px) {
   header {
     height: 113px;
-    padding-bottom: 80px !important;
+    padding-bottom: 72px !important;
   }
   #user-container {
     top: 72px;
@@ -237,4 +210,19 @@ header h3 a {
   z-index: 2147483647;
   text-decoration: none;
   color: inherit;
+}
+
+@media screen and (max-width: 479px) {
+  #messages-card-container, #messages-card {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .mdl-card__supporting-text {
+    padding-bottom: 0;
+  }
+  .mdl-layout__header-row {
+    height: 48px;
+  }
 }

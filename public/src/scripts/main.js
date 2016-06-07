@@ -145,10 +145,11 @@
   });
 
   let showSnackbar = (data) => {
-    snackbar.MaterialSnackbar.prototype.showSnackbar(data);
+    snackbar.MaterialSnackbar.showSnackbar(data);
   };
 
   let setAccountHeader = () => {
+    console.log("setting account header", user);
     if (user.signedIn) {
       accountHeader.textContent = user.common_name;
       accountHeader.removeAttribute('hidden');
