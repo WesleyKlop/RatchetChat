@@ -136,6 +136,7 @@
   sendBtn.addEventListener('click', (e) => {
     e.preventDefault();
     let message = {
+      type: MSG_TYPE_MESSAGE,
       payload: msgBox.value,
       username: user.username,
       common_name: user.common_name,

@@ -50,39 +50,34 @@ class LdapAuthenticator implements AuthInterface
     {
         // Try authenticating
         try {
-            if ($this->provider->auth()->attempt($username, $password, true)) {
-                // Successfully authenticated, get the user information
-                /** @var Builder $search */
-                $search = $this->provider->search();
-                /** @var User $user */
-                $user = $search->find($username);
-
-                if (($banReason = $this->isBanned($username)) !== false) {
-                    return MessageController::Snackbar('You are banned!\nReason: ' . $banReason);
-                }
-
-                $data = [
-                    'username' => $username,
-                    'common_name' => $user->getDisplayName()
-                ];
-
-                // Add the user to the users table if it's not in there yet
-                if (!$this->userExists($username)) {
-                    $this->addUser($username, $user->getDisplayName());
-                }
-
-                // Return the user/password combo as an array
-                return $data;
-            } else {
+            if (!$this->provider->auth()->attempt($username, $password, true))
                 return MessageController::Snackbar('Invalid username/password');
-            }
+
+            // Successfully authenticated, get the user information
+            /** @var Builder $search */
+            $search = $this->provider->search();
+            /** @var User $user */
+            $user = $search->find($username);
+
+            if (($banReason = $this->isBanned($username)) !== false)
+                return MessageController::Snackbar('You are banned!\nReason: ' . $banReason);
+
+            $data = [
+                'username' => $username,
+                'common_name' => $user->getDisplayName()
+            ];
+
+            // Add the user to the users table if it's not in there yet
+            if (!$this->userExists($username))
+                $this->addUser($username, $user->getDisplayName());
+
+            // Return the user/password combo as an array
+            return $data;
         } catch (UsernameRequiredException $e) {
             return MessageController::Snackbar('Missing username');
         } catch (PasswordRequiredException $e) {
             return MessageController::Snackbar('Missing password');
         }
-        $response['response'] = $data;
-        return $response;
     }
 
     /**

@@ -34,8 +34,7 @@ class Chat implements MessageComponentInterface
     {
         // Attach client to pool
         $this->clients->attach($conn);
-
-        /** @noinspection PhpUndefinedFieldInspection */
+        
         echo "New connection with ID " . $conn->resourceId . PHP_EOL;
 
         $recents = $this->msgController->getRecentMessages(12);
@@ -89,8 +88,10 @@ class Chat implements MessageComponentInterface
             case Message::TYPE_MESSAGE:
                 // Only authenticated users are allowed to send messages
                 if ($from->Session->get('authenticated')) {
+                    // Verify the message is correct
+                    $message->verify();
                     // Write the message to stdout
-                    echo '[' . $message->datetime->format('G:i:s') . '] (ID ' . $from->resourceId . ')' . $message->username . ': ' . $message->message . PHP_EOL;
+                    echo '[' . $message->datetime->format('G:i:s') . '] (ID ' . $from->resourceId . ')' . $message->username . ': ' . $message->payload . PHP_EOL;
 
                     $this->sendMessageToAll($message);
                 }
@@ -135,7 +136,6 @@ class Chat implements MessageComponentInterface
     {
         $this->clients->detach($conn);
 
-        /** @noinspection PhpUndefinedFieldInspection */
         echo "Connection {$conn->resourceId} has disconnected!\n";
     }
 

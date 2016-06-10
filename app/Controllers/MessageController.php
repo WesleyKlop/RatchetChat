@@ -110,7 +110,7 @@ class MessageController
             ->select(['bad_word', 'replacement']);
 
         foreach ($words as $word) {
-            $message->message = str_ireplace($word['bad_word'], $word['replacement'], $message->message);
+            $message->payload = str_ireplace($word['bad_word'], $word['replacement'], $message->payload);
         }
 
         return $message;
