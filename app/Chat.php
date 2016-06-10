@@ -3,10 +3,9 @@ namespace Chat;
 
 use Chat\Auth\LdapAuthenticator;
 use Chat\Config\Config;
+use Chat\Controllers\MessageController;
 use Chat\Db\Db;
 use Exception;
-use FluentLiteral;
-use PDO;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
 use SplObjectStorage;
@@ -15,6 +14,7 @@ class Chat implements MessageComponentInterface
 {
     protected static $authenticator;
     protected $clients;
+    protected $msgController;
 
     /**
      * Chat constructor. This creates a storage object to hold the clients
@@ -23,6 +23,7 @@ class Chat implements MessageComponentInterface
     {
         $this->clients = new SplObjectStorage;
         self::$authenticator = new LdapAuthenticator(Config::get('ldap'));
+        $this->msgController = new MessageController();
     }
 
     /**
@@ -31,41 +32,16 @@ class Chat implements MessageComponentInterface
      */
     public function onOpen(ConnectionInterface $conn)
     {
+        // Attach client to pool
         $this->clients->attach($conn);
-
-        /** @noinspection PhpUndefinedFieldInspection */
+        
         echo "New connection with ID " . $conn->resourceId . PHP_EOL;
 
-        // Reverse the messages so they are in the correct order
-        $recents = $this->getRecentMessages(12);
-        $recentMessages = array_reverse($recents);
+        $recents = $this->msgController->getRecentMessages(12);
         // Send the last 12 messages to the user
-        foreach ($recentMessages as $message) {
-            $message['flags'] = 'silent';
+        foreach ($recents as $message) {
             $conn->send(json_encode($message));
         }
-    }
-
-    /**
-     * Returns an array containing the last send messages
-     * @param $limit
-     * @return array
-     */
-    private function getRecentMessages($limit)
-    {
-        return Db::getInstance()
-            ->from('chat_log')
-            ->select([
-                'chat_log.user_id AS username',
-                'chat_log.message',
-                'users.common_name',
-                new FluentLiteral('UNIX_TIMESTAMP(chat_log.datetime) AS time')
-            ])
-            ->leftJoin('users ON users.user_id = chat_log.user_id')
-            ->orderBy('chat_log.datetime DESC')
-            ->limit($limit)
-            ->execute()
-            ->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -75,34 +51,61 @@ class Chat implements MessageComponentInterface
      */
     public function onMessage(ConnectionInterface $from, $msg)
     {
-        $message = json_decode($msg);
-        if ($message->type == 'verification') {
-            $user = self::$authenticator->authenticate($message->username, $message->password);
-            if ($user['status'] === 'success') {
+        // Let's see what we got eh
+        var_dump($msg);
+
+        $message = Message::Build($msg);
+
+        switch ($message->type) {
+            case Message::TYPE_VERIFICATION:
+                $response = self::$authenticator->authenticate($message->username, $message->payload);
+
+                // If we got a message object we can send that and stop there
+                if ($response instanceof Message && $response->type === Message::TYPE_SNACKBAR) {
+                    // If it's a snackbar that means something went wrong so we should set the status to failure
+                    $response->status = Message::STATUS_FAILURE;
+                    $from->send(json_encode($response));
+                    break;
+                }
+
+                // We should have the users' username and common_name, save that in the session
                 $from->Session->set('authenticated', true);
-                $from->Session->set('username', $user['username']);
-                $from->Session->set('common_name', $user['common_name']);
-            }
-            $user['type'] = 'verification';
-            if ($message->flags == 'silent')
-                $user['flags'] = 'silent';
-            $from->send(json_encode($user));
-            return;
-        }
+                $from->Session->set('username', $response['username']);
+                $from->Session->set('common_name', $response['common_name']);
+                // And now we send a friendly message back
+                $msg = new Message();
+                $msg->type = Message::TYPE_VERIFICATION;
+                $msg->username = $response['username'];
+                $msg->common_name = $response['common_name'];
+                $msg->status = Message::STATUS_SUCCESS;
+                // Add the silent flag if the original message had it
+                if ($message->hasFlag('silent'))
+                    $msg->addFlag('silent');
 
-        // Block unauthenticated users
-        if (!$from->Session->get('authenticated')) {
-            return;
-        }
+                // Send the response
+                $from->send(json_encode($msg));
+                break;
+            case Message::TYPE_MESSAGE:
+                // Only authenticated users are allowed to send messages
+                if ($from->Session->get('authenticated')) {
+                    // Verify the message is correct
+                    $message->verify();
+                    // Write the message to stdout
+                    echo '[' . $message->datetime->format('G:i:s') . '] (ID ' . $from->resourceId . ')' . $message->username . ': ' . $message->payload . PHP_EOL;
 
+                    $this->sendMessageToAll($message);
+                }
+                break;
+        }
+    }
+
+    private function sendMessageToAll($message)
+    {
         // Filter bad words
-        $message->message = $this->filter_bad_words($message->message);
+        $this->msgController->filter_bad_words($message);
 
-        // Write to log table
+        // Write to chat_log table
         $this->writeLog($message);
-
-        // Write the message to STDOUT
-        echo '[' . date('G:i:s', $message->time) . '] (ID ' . $from->resourceId . ')' . $message->username . ': ' . $message->message . PHP_EOL;
 
         // Send the message to all connected clients
         foreach ($this->clients as $client) {
@@ -111,26 +114,8 @@ class Chat implements MessageComponentInterface
     }
 
     /**
-     * Case insensitive replacement of bad words fetched from the banned_words table
-     * @param string $message
-     * @return string the new message
-     */
-    private function filter_bad_words($message)
-    {
-        $words = Db::getInstance()
-            ->from('banned_words')
-            ->select(['bad_word', 'replacement']);
-
-        foreach ($words as $word) {
-            $message = str_ireplace($word['bad_word'], $word['replacement'], $message);
-        }
-
-        return $message;
-    }
-
-    /**
      * Writes a row to the log table
-     * @param mixed $message
+     * @param Message $message
      * @return int
      */
     private function writeLog($message)
@@ -138,8 +123,9 @@ class Chat implements MessageComponentInterface
         return Db::getInstance()
             ->insertInto('chat_log', [
                 'user_id' => $message->username,
-                'message' => $message->message
-            ])->execute();
+                'message' => $message->payload
+            ])
+            ->execute();
     }
 
     /**
@@ -150,7 +136,6 @@ class Chat implements MessageComponentInterface
     {
         $this->clients->detach($conn);
 
-        /** @noinspection PhpUndefinedFieldInspection */
         echo "Connection {$conn->resourceId} has disconnected!\n";
     }
 
@@ -162,7 +147,7 @@ class Chat implements MessageComponentInterface
      */
     public function onError(ConnectionInterface $conn, Exception $e)
     {
-        echo "Error occurred!" . PHP_EOL;
+        echo "Error occurred, blame " . $conn->Session->get('common_name') . '!' . PHP_EOL;
         $conn->close();
 
         //rethrow the exception YOLO

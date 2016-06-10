@@ -14,6 +14,7 @@ use Adldap\Exceptions\Auth\PasswordRequiredException;
 use Adldap\Exceptions\Auth\UsernameRequiredException;
 use Adldap\Models\User;
 use Adldap\Query\Builder;
+use Chat\Controllers\MessageController;
 use Chat\Db\Db;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use PDO;
@@ -44,54 +45,39 @@ class LdapAuthenticator implements AuthInterface
         $this->adLdap->connect('default');
     }
 
-    /**
-     * Authenticates a user
-     * @param $username
-     * @param $password
-     * @return array
-     */
+    /** @inheritdoc */
     public function authenticate($username, $password)
     {
-        // Create a default response which will be edited over the course of this script
-        $data = null;
-        $response = [
-            'status' => 'failure',
-            'response' => null
-        ];
-
         // Try authenticating
         try {
-            if ($this->provider->auth()->attempt($username, $password, true)) {
-                // Successfully authenticated, get the user information
-                /** @var Builder $search */
-                $search = $this->provider->search();
-                /** @var User $user */
-                $user = $search->find($username);
+            if (!$this->provider->auth()->attempt($username, $password, true))
+                return MessageController::Snackbar('Invalid username/password');
 
-                if (($banReason = $this->isBanned($username)) !== false) {
-                    $response['type'] = 'ban';
-                    $data = "You are banned! \nReason: " . $banReason;
-                    $response['response'] = $data;
-                    return $response;
-                }
+            // Successfully authenticated, get the user information
+            /** @var Builder $search */
+            $search = $this->provider->search();
+            /** @var User $user */
+            $user = $search->find($username);
 
-                $response['status'] = 'success';
-                $data['username'] = $username;
-                $data['common_name'] = $user->getDisplayName();
+            if (($banReason = $this->isBanned($username)) !== false)
+                return MessageController::Snackbar('You are banned!\nReason: ' . $banReason);
 
-                if (!$this->userExists($username)) {
-                    $this->addUser($username, $user->getDisplayName());
-                }
-            } else {
-                $data = 'Invalid username or password';
-            }
+            $data = [
+                'username' => $username,
+                'common_name' => $user->getDisplayName()
+            ];
+
+            // Add the user to the users table if it's not in there yet
+            if (!$this->userExists($username))
+                $this->addUser($username, $user->getDisplayName());
+
+            // Return the user/password combo as an array
+            return $data;
         } catch (UsernameRequiredException $e) {
-            $data = 'Missing username';
+            return MessageController::Snackbar('Missing username');
         } catch (PasswordRequiredException $e) {
-            $data = 'Missing password';
+            return MessageController::Snackbar('Missing password');
         }
-        $response['response'] = $data;
-        return $response;
     }
 
     /**

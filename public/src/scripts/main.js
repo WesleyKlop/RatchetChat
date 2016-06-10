@@ -3,6 +3,15 @@
  * Main application script.
  */
 ((socketURL) => {
+  const MSG_TYPE_MESSAGE = 'message',
+    MSG_TYPE_VERIFICATION = 'verify',
+    MSG_TYPE_SNACKBAR = 'snackbar';
+
+  const MSG_STATUS_SUCCESS = 0,
+    MSG_STATUS_FAILURE = 1,
+    MSG_STATUS_ERROR = 2;
+
+
   let conn = new WebSocket(socketURL),
     sendBtn = document.querySelector('#submit'),
     chatBox = document.querySelector('#messages'),
@@ -24,7 +33,11 @@
   };
 
   let writeMessage = (message) => {
-    message = JSON.parse(message);
+    // First we check if the message is OK
+    if (message.status !== MSG_STATUS_SUCCESS)
+      return console.warn('Message was invalid!');
+
+    // Create a container to hold the message
     let container = document.createElement('div');
     container.innerHTML = '<div class="message-container">' +
       '<div class="spacing"></div>' +
@@ -33,21 +46,22 @@
       '<div class="time"></div>' +
       '</div>';
 
+    // Fill the actual messagebox
     let messageBox = container.firstChild,
-      date = new Date(message.time * 1000),
+      date = new Date(message.timestamp * 1000),
       hours = date.getHours(),
       minutes = "0" + date.getMinutes(),
       seconds = "0" + date.getSeconds();
 
     // Parse markdown
-    messageBox.querySelector('.message').innerHTML = markdown.toHTML(message.message);
+    messageBox.querySelector('.message').innerHTML = markdown.toHTML(message.payload);
+
     messageBox.querySelector('.name').textContent = message.common_name;
     messageBox.querySelector('.time').textContent = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
     messageBox.dataset.username = message.username;
 
     // Send a notification if the message is not send by the user
-    //noinspection JSUnresolvedVariable
-    if (message.username !== user.username && !message.flags) {
+    if (message.username !== user.username && !message.flags.includes('silent')) {
       if (!('Notification' in window)) {
         console.log("Client does not support nofications, fuck (s)he's old");
       } else if (Notification.permission === 'granted') {
@@ -56,7 +70,7 @@
           tag: "Ratchet Chat"
         });
       } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission(function(permission) {
+        Notification.requestPermission((permission) => {
           if (permission === 'granted') {
             new Notification("New message!", {
               body: message.common_name + ": " + message.message,
@@ -67,13 +81,14 @@
       }
     }
 
+    // Add the message to the chatbox and make it visible, then scroll to the bottom of the container
     chatBox.appendChild(messageBox);
-
-    setTimeout(function() {
+    setTimeout(() => {
       messageBox.classList.add('visible');
       chatBox.scrollTop = chatBox.scrollHeight;
     }, 100);
 
+    // Focus on the messagebox
     msgBox.focus();
   };
 
@@ -88,8 +103,8 @@
       && localStorage.getItem('username')
       && localStorage.getItem('password')) {
       conn.send(JSON.stringify({
-        type: 'verification',
-        flags: 'silent',
+        type: 'verify',
+        flags: ['silent'],
         username: localStorage.getItem('username'),
         password: localStorage.getItem('password')
       }));
@@ -97,26 +112,39 @@
   };
 
   conn.onmessage = (e) => {
+    console.log('received something!');
+    // The message is JSON so we start by parsing that
     let message = JSON.parse(e.data);
-    if (message.type == 'verification') {
-      processResponse(message);
-    } else {
-      writeMessage(e.data);
-      chatBox.scrollTop = chatBox.scrollHeight;
+    console.log(message);
+    // Now let's see what kind of message we received
+    switch (message.type) {
+      case MSG_TYPE_MESSAGE:
+        // We should write the message to the screen
+        writeMessage(message);
+        break;
+      case MSG_TYPE_VERIFICATION:
+        processAuth(message);
+        break;
+      case MSG_TYPE_SNACKBAR:
+        showSnackbar({
+          message: message.payload,
+          timeout: message.flags.timeout
+        });
     }
   };
 
   sendBtn.addEventListener('click', (e) => {
     e.preventDefault();
     let message = {
-      message: msgBox.value.trim(),
+      type: MSG_TYPE_MESSAGE,
+      payload: msgBox.value,
       username: user.username,
       common_name: user.common_name,
       time: Math.floor(Date.now() / 1000)
     };
 
     if (conn.readyState != 1
-      || message.message.length <= 0)
+      || message.payload.length <= 0)
       return;
 
     if (!user.signedIn) {
@@ -125,9 +153,7 @@
         message: 'You must sign in first',
         timeout: 2000,
         actionText: 'Sign in',
-        actionHandler: () => {
-          signInDialog.showModal();
-        }
+        actionHandler: () => signInDialog.showModal()
       });
       return;
     }
@@ -145,10 +171,12 @@
   });
 
   let showSnackbar = (data) => {
-    snackbar.MaterialSnackbar.prototype.showSnackbar(data);
+    //noinspection JSUnresolvedFunction
+    snackbar.MaterialSnackbar.showSnackbar(data);
   };
 
   let setAccountHeader = () => {
+    console.log("setting account header", user);
     if (user.signedIn) {
       accountHeader.textContent = user.common_name;
       accountHeader.removeAttribute('hidden');
@@ -164,22 +192,13 @@
     }
   };
 
-  let processResponse = (response) => {
-    console.log(response);
-    if (response.status != "success") {
-      if (response.flags != 'silent')
-        showSnackbar({
-          message: response.response,
-          timeout: 5000
-        });
-      return;
-    }
-
-    user = response.response;
+  let processAuth = (response) => {
+    user.common_name = response.common_name;
+    user.username = response.username;
     user.signedIn = true;
 
     // If the silent flag exists the auth wasn't called from a dialog so we can't close it...
-    if (response.flags != 'silent') {
+    if (!response.flags.includes('silent')) {
       signInDialog.close();
 
       showSnackbar({
@@ -208,9 +227,9 @@
     let username = signInUsername.value,
       password = signInPassword.value;
     let packet = {
-      type: 'verification',
+      type: MSG_TYPE_VERIFICATION,
       username: username,
-      password: password
+      payload: password
     };
 
     conn.send(JSON.stringify(packet));
@@ -220,5 +239,4 @@
     e.preventDefault();
     signInDialog.close();
   });
-
 })(socketURL);
