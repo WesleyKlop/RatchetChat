@@ -62,40 +62,55 @@ class Message implements JsonSerializable
      */
     public $payload;
 
+
+    public function __construct()
+    {
+    }
+
     /**
-     * Message constructor.
-     * @param string $type
+     * Message creator
      * @param array $flags
      * @param string $username
      * @param string $common_name
      * @param mixed $message
      * @param DateTime $datetime
+     * @return Message
      */
-    public function __construct($type, array $flags, $username, $common_name, $message, $datetime)
+    public static function Create(array $flags, $username, $common_name, $message, $datetime)
     {
-        $this->type = $type;
-        $this->flags = $flags;
-        $this->username = $username;
-        $this->common_name = $common_name;
-        $this->payload = $message;
-        $this->datetime = $datetime;
+        $msg = new self();
+        $msg->flags = $flags;
+        $msg->username = $username;
+        $msg->common_name = $common_name;
+        $msg->payload = $message;
+        $msg->datetime = $datetime;
+
+        return $msg;
     }
 
     /**
      * Deserialize the payload and create a message object
      * @param string $payloadString
+     * @return Message
      */
     public static function Build($payloadString)
     {
-        $message = self::class;
+        $message = new self;
         $payload = json_decode($payloadString, true);
         $message->type = $payload["type"] ?: '';
         $message->status = $payload["status"] ?: self::STATUS_FAILURE;
-        $message->message = $payload["message"] ?: '';
+        $message->payload = $payload["message"] ?: $payload['payload'] ?: '';
         $message->flags = $payload["flags"] ?: [];
         $message->username = $payload["username"] ?: '';
         $message->common_name = $payload["common_name"] ?: '';
         $message->datetime = new DateTime($payload['timestamp'] ?: 'now');
+
+        return $message;
+    }
+
+    public function hasFlag($key)
+    {
+        return in_array($key, $this->flags);
     }
 
     public function verify($signInFailed = false)

@@ -32,7 +32,11 @@
   };
 
   let writeMessage = (message) => {
-    message = JSON.parse(message);
+    // First we check if the message is OK
+    if (message.status !== MSG_STATUS_SUCCESS)
+      return console.warn('Message was invalid!');
+
+    // Create a container to hold the message
     let container = document.createElement('div');
     container.innerHTML = '<div class="message-container">' +
       '<div class="spacing"></div>' +
@@ -41,21 +45,22 @@
       '<div class="time"></div>' +
       '</div>';
 
+    // Fill the actual messagebox
     let messageBox = container.firstChild,
-      date = new Date(message.time * 1000),
+      date = new Date(message.timestamp * 1000),
       hours = date.getHours(),
       minutes = "0" + date.getMinutes(),
       seconds = "0" + date.getSeconds();
 
     // Parse markdown
-    messageBox.querySelector('.message').innerHTML = markdown.toHTML(message.message);
+    messageBox.querySelector('.message').innerHTML = markdown.toHTML(message.payload);
+
     messageBox.querySelector('.name').textContent = message.common_name;
     messageBox.querySelector('.time').textContent = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
     messageBox.dataset.username = message.username;
 
     // Send a notification if the message is not send by the user
-    //noinspection JSUnresolvedVariable
-    if (message.username !== user.username && !message.flags) {
+    if (message.username !== user.username && !message.flags.includes('silent')) {
       if (!('Notification' in window)) {
         console.log("Client does not support nofications, fuck (s)he's old");
       } else if (Notification.permission === 'granted') {
@@ -64,7 +69,7 @@
           tag: "Ratchet Chat"
         });
       } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission(function(permission) {
+        Notification.requestPermission((permission) => {
           if (permission === 'granted') {
             new Notification("New message!", {
               body: message.common_name + ": " + message.message,
@@ -75,13 +80,14 @@
       }
     }
 
+    // Add the message to the chatbox and make it visible, then scroll to the bottom of the container
     chatBox.appendChild(messageBox);
-
-    setTimeout(function() {
+    setTimeout(() => {
       messageBox.classList.add('visible');
       chatBox.scrollTop = chatBox.scrollHeight;
     }, 100);
 
+    // Focus on the messagebox
     msgBox.focus();
   };
 
@@ -96,8 +102,8 @@
       && localStorage.getItem('username')
       && localStorage.getItem('password')) {
       conn.send(JSON.stringify({
-        type: 'verification',
-        flags: 'silent',
+        type: 'verify',
+        flags: ['silent'],
         username: localStorage.getItem('username'),
         password: localStorage.getItem('password')
       }));
@@ -112,8 +118,11 @@
     // Now let's see what kind of message we received
     switch (message.type) {
       case MSG_TYPE_MESSAGE:
+        // We should write the message to the screen
+        writeMessage(message);
         break;
       case MSG_TYPE_VERIFICATION:
+        //TODO
         break;
     }
     /*if (message.type == 'verification')
@@ -142,9 +151,7 @@
         message: 'You must sign in first',
         timeout: 2000,
         actionText: 'Sign in',
-        actionHandler: () => {
-          signInDialog.showModal();
-        }
+        actionHandler: () => signInDialog.showModal()
       });
       return;
     }
@@ -162,6 +169,7 @@
   });
 
   let showSnackbar = (data) => {
+    //noinspection JSUnresolvedFunction
     snackbar.MaterialSnackbar.showSnackbar(data);
   };
 
@@ -226,9 +234,9 @@
     let username = signInUsername.value,
       password = signInPassword.value;
     let packet = {
-      type: 'verification',
+      type: MSG_TYPE_VERIFICATION,
       username: username,
-      password: password
+      payload: password
     };
 
     conn.send(JSON.stringify(packet));
@@ -238,5 +246,4 @@
     e.preventDefault();
     signInDialog.close();
   });
-
 })(socketURL);
