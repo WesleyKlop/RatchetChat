@@ -54,6 +54,7 @@ composer.phar
 ### Manually added
 config/ldap.ini
 node_modules/
-public/build
+public/build/*
+!public/build/.gitkeep
 .env
 database/database.sqlite

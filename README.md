@@ -4,14 +4,30 @@ A Websocket based chat system using Ratchet and Adldap2
 ## Installation
 
 ```shell
-TODO:
+# Clone the repo
+git clone git@github.com:WesleyKlop/RatchetChat.git && cd RatchetChat
+# Install dependencies
+composer install
+npm install
+# Copy the .env.example file
+cp .env.example .env
+# Edit the settings in there
+vim .env
+# Import the required tables using one of the sql files in database/
+mysql RatchetChat < database/tables.mysql.sql
+# (Recommened) create symlink from your webroot to the ratchetchat folder
+ln -s public/build /var/www/$webroot/public_html
 ```
 
 ## Usage
 
 ```shell
-TODO:
+# Build the website using gulp
+gulp build
+# Run the server!
+bin/server
 ```
+You should now be able to chat by visiting $webroot. Make sure you have port forwarded the APP_PORT in your router
 
 ## Contributing
 
@@ -20,17 +36,6 @@ TODO:
 3. Commit your changes: `git commit -am 'Add some feature'`
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request! :D
-
-## Credits
-
-#### PHP
-* composer/composer
-* ratchetphp/Ratchet
-* Adldap2/Adldap2
-
-#### JS
-* GoogleChrome/dialog-polyfill
-* evilstreak/markdown-js
 
 ## License
 
