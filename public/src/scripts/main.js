@@ -3,6 +3,14 @@
  * Main application script.
  */
 ((socketURL) => {
+  const MSG_TYPE_MESSAGE = 'message',
+    MSG_TYPE_VERIFICATION = 'verify';
+
+  const MSG_STATUS_SUCCESS = 0,
+    MSG_STATUS_FAILURE = 1,
+    MSG_STATUS_ERROR = 2;
+
+
   let conn = new WebSocket(socketURL),
     sendBtn = document.querySelector('#submit'),
     chatBox = document.querySelector('#messages'),
@@ -97,13 +105,22 @@
   };
 
   conn.onmessage = (e) => {
+    console.log('received something!');
+    // The message is JSON so we start by parsing that
     let message = JSON.parse(e.data);
-    if (message.type == 'verification') {
-      processResponse(message);
-    } else {
-      writeMessage(e.data);
-      chatBox.scrollTop = chatBox.scrollHeight;
+    console.log(message);
+    // Now let's see what kind of message we received
+    switch (message.type) {
+      case MSG_TYPE_MESSAGE:
+        break;
+      case MSG_TYPE_VERIFICATION:
+        break;
     }
+    /*if (message.type == 'verification')
+     processResponse(message);
+     else
+     writeMessage(e.data);
+     */
   };
 
   sendBtn.addEventListener('click', (e) => {

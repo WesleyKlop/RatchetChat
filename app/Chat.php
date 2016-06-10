@@ -36,12 +36,10 @@ class Chat implements MessageComponentInterface
         /** @noinspection PhpUndefinedFieldInspection */
         echo "New connection with ID " . $conn->resourceId . PHP_EOL;
 
-        // Reverse the messages so they are in the correct order
-        $recents = $this->getRecentMessages(12);
-        $recentMessages = array_reverse($recents);
+        $recents = $this->getRecentMessages(1);
+        var_dump($recents);
         // Send the last 12 messages to the user
-        foreach ($recentMessages as $message) {
-            $message['flags'] = 'silent';
+        foreach ($recents as $message) {
             $conn->send(json_encode($message));
         }
     }
@@ -50,10 +48,11 @@ class Chat implements MessageComponentInterface
      * Returns an array containing the last send messages
      * @param $limit
      * @return array
+     * @throws Exception when the message wasn't valid
      */
     private function getRecentMessages($limit)
     {
-        return Db::getInstance()
+        $rawMessages = Db::getInstance()
             ->from('chat_log')
             ->select([
                 'chat_log.user_id AS username',
@@ -66,6 +65,23 @@ class Chat implements MessageComponentInterface
             ->limit($limit)
             ->execute()
             ->fetchAll(PDO::FETCH_ASSOC);
+        $rawMessages = array_reverse($rawMessages);
+
+        // Build a Message[]
+        $messages = [];
+        foreach ($rawMessages as $rawMessage) {
+            $message = new Message('message', ['silent'], $rawMessage['username'],
+                $rawMessage['common_name'], $rawMessage['message'], new \DateTime('@' . $rawMessage['time']));
+
+            $message->verify();
+
+            if ($message->status !== Message::STATUS_SUCCESS)
+                throw new Exception('A recent message wasn\'t valid.. HOW!?');
+
+            $messages[] = $message;
+        }
+
+        return $messages;
     }
 
     /**
