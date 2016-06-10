@@ -24,6 +24,7 @@ class Message implements JsonSerializable
 
     const TYPE_MESSAGE = 'message';
     const TYPE_VERIFICATION = 'verify';
+    const TYPE_SNACKBAR = 'snackbar';
 
     /**
      * The type of message
@@ -65,6 +66,7 @@ class Message implements JsonSerializable
 
     public function __construct()
     {
+        $this->datetime = new DateTime();
     }
 
     /**
@@ -97,13 +99,14 @@ class Message implements JsonSerializable
     {
         $message = new self;
         $payload = json_decode($payloadString, true);
-        $message->type = $payload["type"] ?: '';
-        $message->status = $payload["status"] ?: self::STATUS_FAILURE;
-        $message->payload = $payload["message"] ?: $payload['payload'] ?: '';
-        $message->flags = $payload["flags"] ?: [];
-        $message->username = $payload["username"] ?: '';
-        $message->common_name = $payload["common_name"] ?: '';
-        $message->datetime = new DateTime($payload['timestamp'] ?: 'now');
+
+        $message->type = isset($payload['type']) ? $payload["type"] : '';
+        $message->status = isset($payload['status']) ? $payload["status"] : self::STATUS_FAILURE;
+        $message->payload = isset($payload['payload']) ? $payload['payload'] : '';
+        $message->flags = isset($payload['flags']) ? $payload["flags"] : [];
+        $message->username = isset($payload['username']) ? $payload["username"] : '';
+        $message->common_name = isset($payload['common_name']) ? $payload["common_name"] : '';
+        $message->datetime = new DateTime(isset($payload['timestamp']) ? $payload['timestamp'] : 'now');
 
         return $message;
     }
@@ -111,6 +114,17 @@ class Message implements JsonSerializable
     public function hasFlag($key)
     {
         return in_array($key, $this->flags);
+    }
+
+    public function addFlag($val, $key = null)
+    {
+        if (!empty($key))
+            $this->flags[$key] = $val;
+        else
+            $this->flags[] = $val;
+
+        // Remove duplicates
+        $this->flags = array_unique($this->flags);
     }
 
     public function verify($signInFailed = false)

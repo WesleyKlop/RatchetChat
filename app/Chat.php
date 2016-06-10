@@ -57,44 +57,51 @@ class Chat implements MessageComponentInterface
 
         $message = Message::Build($msg);
 
-        // Now what does the message look like
-        var_dump($message);
-
         switch ($message->type) {
             case Message::TYPE_VERIFICATION:
-                //TODO: fancy user authentication
+                $response = self::$authenticator->authenticate($message->username, $message->payload);
+
+                // If we got a message object we can send that and stop there
+                if ($response instanceof Message && $response->type === Message::TYPE_SNACKBAR) {
+                    // If it's a snackbar that means something went wrong so we should set the status to failure
+                    $response->status = Message::STATUS_FAILURE;
+                    $from->send(json_encode($response));
+                    break;
+                }
+
+                // We should have the users' username and common_name, save that in the session
+                $from->Session->set('authenticated', true);
+                $from->Session->set('username', $response['username']);
+                $from->Session->set('common_name', $response['common_name']);
+                // And now we send a friendly message back
+                $msg = new Message();
+                $msg->type = Message::TYPE_VERIFICATION;
+                $msg->username = $response['username'];
+                $msg->common_name = $response['common_name'];
+                $msg->status = Message::STATUS_SUCCESS;
+                // Add the silent flag if the original message had it
+                if ($message->hasFlag('silent'))
+                    $msg->addFlag('silent');
+
+                // Send the response
+                $from->send(json_encode($msg));
                 break;
             case Message::TYPE_MESSAGE:
                 // Only authenticated users are allowed to send messages
                 if ($from->Session->get('authenticated')) {
                     // Write the message to stdout
-                    echo '[' . date('G:i:s', $message->time) . '] (ID ' . $from->resourceId . ')' . $message->username . ': ' . $message->message . PHP_EOL;
+                    echo '[' . $message->datetime->format('G:i:s') . '] (ID ' . $from->resourceId . ')' . $message->username . ': ' . $message->message . PHP_EOL;
 
                     $this->sendMessageToAll($message);
                 }
                 break;
-        }
-
-        if ($message->type == Message::TYPE_VERIFICATION) {
-            // The password is contained in the payload
-            $user = self::$authenticator->authenticate($message->username, $message->payload);
-            if ($user['status'] === 'success') {
-                $from->Session->set('authenticated', true);
-                $from->Session->set('username', $user['username']);
-                $from->Session->set('common_name', $user['common_name']);
-            }
-            $user['type'] = 'verification';
-            if ($message->flags == 'silent')
-                $user['flags'] = 'silent';
-            $from->send(json_encode($user));
-            return;
         }
     }
 
     private function sendMessageToAll($message)
     {
         // Filter bad words
-        $message->message = $this->msgController->filter_bad_words($message->message);
+        $this->msgController->filter_bad_words($message);
 
         // Write to chat_log table
         $this->writeLog($message);
@@ -107,7 +114,7 @@ class Chat implements MessageComponentInterface
 
     /**
      * Writes a row to the log table
-     * @param mixed $message
+     * @param Message $message
      * @return int
      */
     private function writeLog($message)
@@ -115,8 +122,9 @@ class Chat implements MessageComponentInterface
         return Db::getInstance()
             ->insertInto('chat_log', [
                 'user_id' => $message->username,
-                'message' => $message->message
-            ])->execute();
+                'message' => $message->payload
+            ])
+            ->execute();
     }
 
     /**
@@ -139,7 +147,7 @@ class Chat implements MessageComponentInterface
      */
     public function onError(ConnectionInterface $conn, Exception $e)
     {
-        echo "Error occurred!" . PHP_EOL;
+        echo "Error occurred, blame " . $conn->Session->get('common_name') . '!' . PHP_EOL;
         $conn->close();
 
         //rethrow the exception YOLO

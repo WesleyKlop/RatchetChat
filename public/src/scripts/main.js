@@ -4,7 +4,8 @@
  */
 ((socketURL) => {
   const MSG_TYPE_MESSAGE = 'message',
-    MSG_TYPE_VERIFICATION = 'verify';
+    MSG_TYPE_VERIFICATION = 'verify',
+    MSG_TYPE_SNACKBAR = 'snackbar';
 
   const MSG_STATUS_SUCCESS = 0,
     MSG_STATUS_FAILURE = 1,
@@ -122,27 +123,27 @@
         writeMessage(message);
         break;
       case MSG_TYPE_VERIFICATION:
-        //TODO
+        processAuth(message);
         break;
+      case MSG_TYPE_SNACKBAR:
+        showSnackbar({
+          message: message.payload,
+          timeout: message.flags.timeout
+        });
     }
-    /*if (message.type == 'verification')
-     processResponse(message);
-     else
-     writeMessage(e.data);
-     */
   };
 
   sendBtn.addEventListener('click', (e) => {
     e.preventDefault();
     let message = {
-      message: msgBox.value.trim(),
+      payload: msgBox.value,
       username: user.username,
       common_name: user.common_name,
       time: Math.floor(Date.now() / 1000)
     };
 
     if (conn.readyState != 1
-      || message.message.length <= 0)
+      || message.payload.length <= 0)
       return;
 
     if (!user.signedIn) {
@@ -190,22 +191,13 @@
     }
   };
 
-  let processResponse = (response) => {
-    console.log(response);
-    if (response.status != "success") {
-      if (response.flags != 'silent')
-        showSnackbar({
-          message: response.response,
-          timeout: 5000
-        });
-      return;
-    }
-
-    user = response.response;
+  let processAuth = (response) => {
+    user.common_name = response.common_name;
+    user.username = response.username;
     user.signedIn = true;
 
     // If the silent flag exists the auth wasn't called from a dialog so we can't close it...
-    if (response.flags != 'silent') {
+    if (!response.flags.includes('silent')) {
       signInDialog.close();
 
       showSnackbar({

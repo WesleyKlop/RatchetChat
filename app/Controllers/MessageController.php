@@ -19,6 +19,25 @@ use PDO;
 class MessageController
 {
     /**
+     * Get a Snackbar message
+     * @param string $payload
+     * @param int|double|float $timeout
+     * @return Message
+     */
+    public static function Snackbar($payload, $timeout = 20000)
+    {
+        // Snackbar doesn't need any special things because it's only sent by the server.
+        $message = new Message();
+
+        $message->type = Message::TYPE_SNACKBAR;
+        $message->payload = $payload;
+        $message->flags = ['timeout' => $timeout];
+        $message->status = Message::STATUS_SUCCESS;
+
+        return $message;
+    }
+
+    /**
      * Returns an array containing the last send messages
      * @param $limit
      * @return Message[]
@@ -71,15 +90,18 @@ class MessageController
             $fields['message'], new DateTime('@' . $fields['time']));
 
         // Add existing flags if they exist
-        $message->flags = array_unique(array_merge($message->flags, $fields['flags'] ?: []));
+        $message->flags = array_unique(array_merge(
+            $message->flags,
+            (isset($fields['flags']) ? $fields['flags'] : [])
+        ));
 
         return $message;
     }
 
     /**
      * Case insensitive replacement of bad words fetched from the banned_words table
-     * @param string $message
-     * @return string the new message
+     * @param Message $message
+     * @return Message the new message
      */
     public function filter_bad_words($message)
     {
@@ -88,7 +110,7 @@ class MessageController
             ->select(['bad_word', 'replacement']);
 
         foreach ($words as $word) {
-            $message = str_ireplace($word['bad_word'], $word['replacement'], $message);
+            $message->message = str_ireplace($word['bad_word'], $word['replacement'], $message->message);
         }
 
         return $message;

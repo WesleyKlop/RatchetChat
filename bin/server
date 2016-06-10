@@ -7,7 +7,16 @@ use Ratchet\Server\IoServer;
 use Ratchet\Session\SessionProvider;
 use Ratchet\WebSocket\WsServer;
 
+// Clear the screen
+echo shell_exec('clear');
+
 require_once __DIR__ . '/../vendor/autoload.php';
+
+if (Config::get('app.debug') == true) {
+    echo "Showing all errors..." . PHP_EOL;
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+}
 
 $server = IoServer::factory(
     new HttpServer(
@@ -20,8 +29,6 @@ $server = IoServer::factory(
     ),
     Config::get('app.port')
 );
-
-echo shell_exec('clear');
 echo "Starting websocket server on " . Config::get('app.host') . ':' . Config::get('app.port') . PHP_EOL;
 
 $server->run();

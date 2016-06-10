@@ -8,14 +8,15 @@
 
 namespace Chat\Auth;
 
+use Chat\Message;
 
 interface AuthInterface
 {
     /**
-     * Authenticates a user
-     * @param $username
-     * @param $password
-     * @return bool
+     * Authenticates the user
+     * @param string $username
+     * @param string $password
+     * @return Message|array the user info in an array or A snackbar Message on error
      */
     function authenticate($username, $password);
 
