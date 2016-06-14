@@ -23,6 +23,7 @@
         signInUsername = document.querySelector('#form-username'),
         signInPassword = document.querySelector('#form-password'),
         signInCancel = document.querySelector('#form-cancel'),
+        signInRemember = document.querySelector('#form-remember'),
         snackbar = document.querySelector('#must-signin-snackbar'),
         accountHeader = document.querySelector('#user-name');
 
@@ -207,6 +208,7 @@
         // Save the JWT if we're expecting one
         if (expectJwt && response.payload) {
             localStorage.setItem('UserKey', response.payload);
+            expectJwt = false;
         }
 
         setAccountHeader();
@@ -216,6 +218,9 @@
         user.signedIn = false;
         user.username = '';
         user.common_name = '';
+
+        // Remove the JWT token because you don't expect to sign in after a refresh after logging out
+        localStorage.removeItem('UserKey');
 
         setAccountHeader();
         showSnackbar({
@@ -232,8 +237,12 @@
             type: MSG_TYPE_VERIFICATION,
             username: username,
             payload: password,
-            flags: ['remember']
+            flags: []
         };
+
+        // If we want to be rememberd, add that flag
+        if (signInRemember.checked === true)
+            packet.flags.push('remember');
 
         // So we know if we have to store the received JWT
         expectJwt = packet.flags.includes('remember');
