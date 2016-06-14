@@ -6,6 +6,7 @@ use Chat\Config\Config;
 use Chat\Controllers\MessageController;
 use Chat\Db\Db;
 use Exception;
+use Firebase\JWT\JWT;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
 use SplObjectStorage;
@@ -34,7 +35,7 @@ class Chat implements MessageComponentInterface
     {
         // Attach client to pool
         $this->clients->attach($conn);
-        
+
         echo "New connection with ID " . $conn->resourceId . PHP_EOL;
 
         $recents = $this->msgController->getRecentMessages(12);
@@ -58,7 +59,16 @@ class Chat implements MessageComponentInterface
 
         switch ($message->type) {
             case Message::TYPE_VERIFICATION:
-                $response = self::$authenticator->authenticate($message->username, $message->payload);
+                if ($message->hasFlag('silent')) {
+                    $jwt = (array)JWT::decode($message->payload, Config::get('jwt.key'), ['HS256']);
+                    $username = $jwt['username'];
+                    $password = $jwt['password'];
+                } else {
+                    $username = $message->username;
+                    $password = $message->payload;
+                }
+
+                $response = self::$authenticator->authenticate($username, $password);
 
                 // If we got a message object we can send that and stop there
                 if ($response instanceof Message && $response->type === Message::TYPE_SNACKBAR) {
@@ -72,15 +82,21 @@ class Chat implements MessageComponentInterface
                 $from->Session->set('authenticated', true);
                 $from->Session->set('username', $response['username']);
                 $from->Session->set('common_name', $response['common_name']);
+
                 // And now we send a friendly message back
                 $msg = new Message();
                 $msg->type = Message::TYPE_VERIFICATION;
                 $msg->username = $response['username'];
                 $msg->common_name = $response['common_name'];
                 $msg->status = Message::STATUS_SUCCESS;
+
                 // Add the silent flag if the original message had it
                 if ($message->hasFlag('silent'))
                     $msg->addFlag('silent');
+
+                // Add a JWT as payload if the message has the 'remember' flag
+                if ($message->hasFlag('remember'))
+                    $msg->payload = self::$authenticator->generateJWT($message->username, $message->payload);
 
                 // Send the response
                 $from->send(json_encode($msg));
