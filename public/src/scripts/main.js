@@ -12,18 +12,21 @@
         MSG_STATUS_ERROR = 2;
 
 
+    let signIn = {
+        dialog: document.querySelector('#form-dialog'),
+        button: document.querySelector('#sign-in'),
+        form: document.querySelector('#form-signin'),
+        username: document.querySelector('#form-username'),
+        password: document.querySelector('#form-password'),
+        cancel: document.querySelector('#form-cancel'),
+        remember: document.querySelector('#form-remember')
+    };
+
     let conn = new WebSocket(socketURL),
         sendBtn = document.querySelector('#submit'),
         chatBox = document.querySelector('#messages'),
         msgBox = document.querySelector('#message'),
-        signInDialog = document.querySelector('#form-dialog'),
-        signInButton = document.querySelector('#sign-in'),
         signOutButton = document.querySelector('#sign-out'),
-        signInForm = document.querySelector('#form-signin'),
-        signInUsername = document.querySelector('#form-username'),
-        signInPassword = document.querySelector('#form-password'),
-        signInCancel = document.querySelector('#form-cancel'),
-        signInRemember = document.querySelector('#form-remember'),
         snackbar = document.querySelector('#must-signin-snackbar'),
         accountHeader = document.querySelector('#user-name');
 
@@ -36,6 +39,41 @@
     let expectJwt = false,
         focused = true,
         unreadCount = 0;
+
+    conn.onopen = () => {
+        console.info("Connection with", socketURL, "is established!");
+
+        // Try automatically signing in using the JWT
+        console.info('Sending a silent authentication message to the server!');
+        if (localStorage.getItem('UserKey')) {
+            conn.send(JSON.stringify({
+                type: 'verify',
+                flags: ['silent'],
+                payload: localStorage.getItem('UserKey')
+            }));
+        }
+    };
+
+    conn.onmessage = (e) => {
+        // The message is JSON so we start by parsing that
+        let message = JSON.parse(e.data);
+        console.log(message);
+        // Now let's see what kind of message we received
+        switch (message.type) {
+            case MSG_TYPE_MESSAGE:
+                // We should write the message to the screen
+                processMessage(message);
+                break;
+            case MSG_TYPE_VERIFICATION:
+                processAuth(message);
+                break;
+            case MSG_TYPE_SNACKBAR:
+                showSnackbar({
+                    message: message.payload,
+                    timeout: message.flags.timeout
+                });
+        }
+    };
 
     let processMessage = (message) => {
         // First we check if the message is OK
@@ -62,8 +100,8 @@
         messageBox.querySelector('.message').innerHTML = markdown.toHTML(message.payload);
 
         messageBox.querySelector('.name').textContent = message.common_name;
-        messageBox.querySelector('.time').textContent = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
-        messageBox.dataset.username = message.username;
+        messageBox.querySelector('.time').textContent = `${hours}:${minutes.substr(-2)}:${seconds.substr(-2)}`;
+        //messageBox.dataset.username = message.username;
 
         // Send a notification if the message is not send by the user
         if (message.username !== user.username && !message.flags.includes('silent')) {
@@ -102,42 +140,6 @@
         msgBox.focus();
     };
 
-    conn.onopen = () => {
-        console.info("Connection with", socketURL, "is established!");
-
-        // Try automatically signing in using the JWT
-        console.info('Sending a silent authentication message to the server!');
-        if (localStorage.getItem('UserKey')) {
-            console.log('should send that verification now...');
-            conn.send(JSON.stringify({
-                type: 'verify',
-                flags: ['silent'],
-                payload: localStorage.getItem('UserKey')
-            }));
-        }
-    };
-
-    conn.onmessage = (e) => {
-        // The message is JSON so we start by parsing that
-        let message = JSON.parse(e.data);
-        console.log(message);
-        // Now let's see what kind of message we received
-        switch (message.type) {
-            case MSG_TYPE_MESSAGE:
-                // We should write the message to the screen
-                processMessage(message);
-                break;
-            case MSG_TYPE_VERIFICATION:
-                processAuth(message);
-                break;
-            case MSG_TYPE_SNACKBAR:
-                showSnackbar({
-                    message: message.payload,
-                    timeout: message.flags.timeout
-                });
-        }
-    };
-
     let sendMessage = (e) => {
         e.preventDefault();
         let message = {
@@ -159,7 +161,7 @@
                 message: 'You must sign in first',
                 timeout: 2000,
                 actionText: 'Sign in',
-                actionHandler: () => signInDialog.showModal()
+                actionHandler: () => signIn.dialog.showModal()
             });
             return;
         }
@@ -174,8 +176,8 @@
 
     sendBtn.addEventListener('click', sendMessage);
 
-    signInButton.addEventListener('click', () => {
-        signInDialog.showModal();
+    signIn.button.addEventListener('click', () => {
+        signIn.dialog.showModal();
     });
 
     let showSnackbar = (data) => {
@@ -189,14 +191,14 @@
             accountHeader.textContent = user.common_name;
             accountHeader.removeAttribute('hidden');
 
-            signInButton.setAttribute('hidden', 'true');
+            signIn.button.setAttribute('hidden', 'true');
             signOutButton.removeAttribute('hidden');
         } else {
             accountHeader.setAttribute('hidden', 'true');
             accountHeader.textContent = '';
 
             signOutButton.setAttribute('hidden', 'true');
-            signInButton.removeAttribute('hidden');
+            signIn.button.removeAttribute('hidden');
         }
     };
 
@@ -207,7 +209,7 @@
 
         // If the silent flag exists the auth wasn't called from a dialog so we can't close it...
         if (!response.flags.includes('silent')) {
-            signInDialog.close();
+            signIn.dialog.close();
 
             showSnackbar({
                 message: 'Successfully signed in as ' + user.common_name,
@@ -239,10 +241,10 @@
         });
     });
 
-    signInForm.addEventListener('submit', (e) => {
+    signIn.form.addEventListener('submit', (e) => {
         e.preventDefault();
-        let username = signInUsername.value,
-            password = signInPassword.value;
+        let username = signIn.username.value,
+            password = signIn.password.value;
         let packet = {
             type: MSG_TYPE_VERIFICATION,
             username: username,
@@ -251,7 +253,7 @@
         };
 
         // If we want to be rememberd, add that flag
-        if (signInRemember.checked === true)
+        if (signIn.remember.checked === true)
             packet.flags.push('remember');
 
         // So we know if we have to store the received JWT
@@ -260,9 +262,9 @@
         conn.send(JSON.stringify(packet));
     });
 
-    signInCancel.addEventListener('click', (e) => {
+    signIn.cancel.addEventListener('click', (e) => {
         e.preventDefault();
-        signInDialog.close();
+        signIn.dialog.close();
     });
 
     // Send message on enter in chatbox but newline on shift+enter

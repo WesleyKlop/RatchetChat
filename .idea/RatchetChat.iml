@@ -10,5 +10,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="dialog-polyfill" level="application" />
     <orderEntry type="library" name="RatchetChat node_modules" level="project" />
+    <orderEntry type="library" name="material" level="application" />
   </component>
 </module>
