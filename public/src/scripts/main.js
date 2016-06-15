@@ -33,9 +33,11 @@
         common_name: ''
     };
 
-    let expectJwt = false;
+    let expectJwt = false,
+        focused = true,
+        unreadCount = 0;
 
-    let writeMessage = (message) => {
+    let processMessage = (message) => {
         // First we check if the message is OK
         if (message.status !== MSG_STATUS_SUCCESS)
             return console.warn('Message was invalid!');
@@ -69,18 +71,23 @@
                 console.log("Client does not support nofications, fuck (s)he's old");
             } else if (Notification.permission === 'granted') {
                 new Notification("New message!", {
-                    body: message.common_name + ": " + message.message,
+                    body: message.common_name + ": " + message.payload,
                     tag: "Ratchet Chat"
                 });
             } else if (Notification.permission !== 'denied') {
                 Notification.requestPermission((permission) => {
                     if (permission === 'granted') {
                         new Notification("New message!", {
-                            body: message.common_name + ": " + message.message,
+                            body: message.common_name + ": " + message.payload,
                             tag: "Ratchet Chat"
                         });
                     }
                 });
+            }
+            // Change the document title to show unread messages if not focussed
+            if (!focused) {
+                unreadCount++;
+                document.title = "(" + unreadCount + ") RatchetChat";
             }
         }
 
@@ -118,7 +125,7 @@
         switch (message.type) {
             case MSG_TYPE_MESSAGE:
                 // We should write the message to the screen
-                writeMessage(message);
+                processMessage(message);
                 break;
             case MSG_TYPE_VERIFICATION:
                 processAuth(message);
@@ -260,10 +267,20 @@
 
     // Send message on enter in chatbox but newline on shift+enter
     msgBox.addEventListener('keypress', (e) => {
-        console.log(e);
         // if the user presses enter without holding shift call the sendmessage function
         if (e.keyCode === 13 && e.shiftKey !== true) {
             sendMessage(e);
+        }
+    });
+
+    // Let the document title change when the user is not focussed on the tab
+    document.addEventListener('visibilitychange', (e) => {
+        if (document.hidden) {
+            focused = false;
+        } else {
+            focused = true;
+            document.title = "RatchetChat";
+            unreadCount = 0;
         }
     });
 })(socketURL);
