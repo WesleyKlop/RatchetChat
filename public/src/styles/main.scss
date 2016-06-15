@@ -8,7 +8,7 @@ main, #messages-card {
 }
 
 #messages-card-container {
-    height: calc(100% - 150px);
+    height: calc(100% - 50px);
     padding-bottom: 0;
 }
 
@@ -16,6 +16,10 @@ main, #messages-card {
     margin-top: 8px;
     padding-top: 7px;
     width: 100%;
+}
+
+.mdl-layout__header .mdl-grid {
+    padding: 0;
 }
 
 .mdl-layout__header-row span {
@@ -29,7 +33,7 @@ main, #messages-card {
 }
 
 .material-icons {
-    font-size: 36px;
+    font-size: 36px !important;
     top: 8px;
     position: relative;
 }
@@ -117,7 +121,7 @@ main, #messages-card {
         float: right;
         font-weight: 300;
         font-size: 12px;
-        padding-right: 10px;
+        padding-right: 16px;
         text-align: right;
     }
 }
@@ -147,7 +151,7 @@ main, #messages-card {
     position: absolute;
     display: flex;
     flex-direction: row;
-    top: 22px;
+    top: 14px;
     width: 100%;
     right: 0;
     padding-left: 10px;
@@ -176,23 +180,41 @@ main, #messages-card {
     max-height: 200px;
 }
 
+@media screen and (max-width: 479px) {
+    #messages-card-container, #messages-card {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    .mdl-card__supporting-text {
+        padding-bottom: 0;
+    }
+}
+
 @media screen and (max-width: 610px) {
-    header {
-        height: 113px;
-        padding-bottom: 72px !important;
+    header.mdl-layout__header {
+        // To keep the user-container stuck to the bottom
+        margin-bottom: 38px;
     }
     #user-container {
-        top: 72px;
+        top: 56px;
         background-color: #039be5;
         height: 38px;
-        padding-top: 3px;
-        padding-right: 2px;
         #user-pic {
-            top: 2px;
             width: 33px;
             height: 33px;
             background-size: 33px;
         }
+    }
+    #messages-card .mdl-card__supporting-text {
+        padding-left: 0;
+        padding-right: 0;
+    }
+    #message-form {
+        padding-left: 8px;
+        padding-right: 8px;
+        box-sizing: border-box;
     }
 }
 
@@ -213,19 +235,4 @@ header h3 a {
     z-index: 2147483647;
     text-decoration: none;
     color: inherit;
-}
-
-@media screen and (max-width: 479px) {
-    #messages-card-container, #messages-card {
-        height: 100%;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-    }
-    .mdl-card__supporting-text {
-        padding-bottom: 0;
-    }
-    .mdl-layout__header-row {
-        height: 48px;
-    }
 }
