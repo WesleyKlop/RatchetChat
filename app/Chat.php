@@ -52,9 +52,6 @@ class Chat implements MessageComponentInterface
      */
     public function onMessage(ConnectionInterface $from, $msg)
     {
-        // Let's see what we got eh
-        var_dump($msg);
-
         $message = Message::Build($msg);
 
         switch ($message->type) {
