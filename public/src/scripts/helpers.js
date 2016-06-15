@@ -2,6 +2,8 @@
 if (!Date.now) {
   Date.now = () => new Date().getTime();
 }
+Date.getTimestamp = () => Math.floor(Date.now() / 1000);
+
 // Array.includes polyfill, courtesy of MDN
 if (!Array.prototype.includes) {
   Array.prototype.includes = function (searchElement /*, fromIndex*/) {

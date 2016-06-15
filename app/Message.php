@@ -106,7 +106,7 @@ class Message implements JsonSerializable
         $message->flags = isset($payload['flags']) ? $payload["flags"] : [];
         $message->username = isset($payload['username']) ? $payload["username"] : '';
         $message->common_name = isset($payload['common_name']) ? $payload["common_name"] : '';
-        $message->datetime = new DateTime(isset($payload['timestamp']) ? $payload['timestamp'] : 'now');
+        $message->datetime = new DateTime(isset($payload['timestamp']) ? '@' . $payload['timestamp'] : 'now');
 
         return $message;
     }
@@ -121,7 +121,7 @@ class Message implements JsonSerializable
         if (!empty($key))
             $this->flags[$key] = $val;
         else
-            $this->flags[] = $val;
+            $this->flags[$val] = $val;
 
         // Remove duplicates
         $this->flags = array_unique($this->flags);

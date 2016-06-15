@@ -6,6 +6,7 @@ use Chat\Config\Config;
 use Chat\Controllers\MessageController;
 use Chat\Db\Db;
 use Exception;
+use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
@@ -57,7 +58,12 @@ class Chat implements MessageComponentInterface
         switch ($message->type) {
             case Message::TYPE_VERIFICATION:
                 if ($message->hasFlag('silent')) {
-                    $jwt = (array)JWT::decode($message->payload, Config::get('jwt.key'), ['HS256']);
+                    try {
+                        $jwt = (array)JWT::decode($message->payload, Config::get('jwt.key'), ['HS256']);
+                    } catch (ExpiredException $e) {
+                        $from->send(json_encode(MessageController::Snackbar('Your token is expired! Please try signing in again.')));
+                        break;
+                    }
                     $username = $jwt['username'];
                     $password = $jwt['password'];
                 } else {
@@ -87,6 +93,9 @@ class Chat implements MessageComponentInterface
                 $msg->common_name = $response['common_name'];
                 $msg->status = Message::STATUS_SUCCESS;
 
+                // Write signin notice to stdout
+                echo '[' . $msg->datetime->format('G:i:s') . '] Connection with ID ' . $from->resourceId . ' logged in as ' . $msg->common_name . '(' . $msg->username . ')' . PHP_EOL;
+
                 // Add the silent flag if the original message had it
                 if ($message->hasFlag('silent'))
                     $msg->addFlag('silent');
@@ -103,26 +112,19 @@ class Chat implements MessageComponentInterface
                 if ($from->Session->get('authenticated')) {
                     // Verify the message is correct
                     $message->verify();
+
+                    // Filter bad words
+                    $this->msgController->filter_bad_words($message);
+
+                    // Write to chat_log table
+                    $this->writeLog($message);
+
                     // Write the message to stdout
                     echo '[' . $message->datetime->format('G:i:s') . '] (ID ' . $from->resourceId . ')' . $message->username . ': ' . $message->payload . PHP_EOL;
 
                     $this->sendMessageToAll($message);
                 }
                 break;
-        }
-    }
-
-    private function sendMessageToAll($message)
-    {
-        // Filter bad words
-        $this->msgController->filter_bad_words($message);
-
-        // Write to chat_log table
-        $this->writeLog($message);
-
-        // Send the message to all connected clients
-        foreach ($this->clients as $client) {
-            $client->send(json_encode($message));
         }
     }
 
@@ -139,6 +141,14 @@ class Chat implements MessageComponentInterface
                 'message' => $message->payload
             ])
             ->execute();
+    }
+
+    private function sendMessageToAll($message)
+    {
+        // Send the message to all connected clients
+        foreach ($this->clients as $client) {
+            $client->send(json_encode($message));
+        }
     }
 
     /**
