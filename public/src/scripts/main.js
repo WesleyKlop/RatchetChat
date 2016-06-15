@@ -3,15 +3,6 @@
  * Main application script.
  */
 ((socketURL) => {
-    const MSG_TYPE_MESSAGE = 'message',
-        MSG_TYPE_VERIFICATION = 'verify',
-        MSG_TYPE_SNACKBAR = 'snackbar';
-
-    const MSG_STATUS_SUCCESS = 0,
-        MSG_STATUS_FAILURE = 1,
-        MSG_STATUS_ERROR = 2;
-
-
     let signIn = {
         dialog: document.querySelector('#form-dialog'),
         button: document.querySelector('#sign-in'),
@@ -55,29 +46,31 @@
     };
 
     conn.onmessage = (e) => {
-        // The message is JSON so we start by parsing that
-        let message = JSON.parse(e.data);
-        console.log(message);
+        let message = Message.Build(e.data);
+
         // Now let's see what kind of message we received
         switch (message.type) {
-            case MSG_TYPE_MESSAGE:
+            case Message.TYPE_MESSAGE:
                 // We should write the message to the screen
                 processMessage(message);
                 break;
-            case MSG_TYPE_VERIFICATION:
+            case Message.TYPE_VERIFICATION:
                 processAuth(message);
                 break;
-            case MSG_TYPE_SNACKBAR:
+            case Message.TYPE_SNACKBAR:
                 showSnackbar({
                     message: message.payload,
                     timeout: message.flags.timeout
                 });
+                break;
+            default:
+                console.error("Message is an unkown type! ", message.type);
         }
     };
 
     let processMessage = (message) => {
         // First we check if the message is OK
-        if (message.status !== MSG_STATUS_SUCCESS)
+        if (message.status !== Message.STATUS_SUCCESS)
             return console.warn('Message was invalid!');
 
         // Create a container to hold the message
@@ -142,21 +135,21 @@
 
     let sendMessage = (e) => {
         e.preventDefault();
-        let message = {
-            type: MSG_TYPE_MESSAGE,
-            // Replace \n with "  \n" for markdown
-            payload: msgBox.value.replace(/\n/g, "  \n"),
+        console.log('sendMessage');
+        let message = Message.Build({
+            type: Message.TYPE_MESSAGE,
+            // Replace \n not preceded by 2 spaces with "  \n" for markdown
+            payload: msgBox.value.replace(/[^ ]{2}\n/g, "  \n"),
             username: user.username,
             common_name: user.common_name,
-            time: Math.floor(Date.now() / 1000)
-        };
+            timestamp: Math.floor(Date.now() / 1000),
+        });
 
         if (conn.readyState != 1
             || message.payload.length <= 0)
             return;
 
         if (!user.signedIn) {
-            //noinspection JSUnusedGlobalSymbols
             showSnackbar({
                 message: 'You must sign in first',
                 timeout: 2000,
@@ -166,9 +159,7 @@
             return;
         }
 
-        message = JSON.stringify(message);
-        //noinspection JSCheckFunctionSignatures
-        conn.send(message);
+        conn.send(message.toJson());
 
         // Clear messageBox
         msgBox.value = '';
@@ -208,7 +199,7 @@
         user.signedIn = true;
 
         // If the silent flag exists the auth wasn't called from a dialog so we can't close it...
-        if (!response.flags.includes('silent')) {
+        if (!response.hasFlag('silent')) {
             signIn.dialog.close();
 
             showSnackbar({
@@ -245,19 +236,17 @@
         e.preventDefault();
         let username = signIn.username.value,
             password = signIn.password.value;
-        let packet = {
-            type: MSG_TYPE_VERIFICATION,
-            username: username,
-            payload: password,
-            flags: []
-        };
+        let packet = new Message();
+        packet.type = Message.TYPE_VERIFICATION;
+        packet.username = username;
+        packet.payload = password;
 
         // If we want to be rememberd, add that flag
         if (signIn.remember.checked === true)
-            packet.flags.push('remember');
+            packet.addFlag('remember');
 
         // So we know if we have to store the received JWT
-        expectJwt = packet.flags.includes('remember');
+        expectJwt = packet.hasFlag('remember');
 
         conn.send(JSON.stringify(packet));
     });
@@ -276,7 +265,7 @@
     });
 
     // Let the document title change when the user is not focussed on the tab
-    document.addEventListener('visibilitychange', (e) => {
+    document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
             focused = false;
         } else {

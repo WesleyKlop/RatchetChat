@@ -24,7 +24,7 @@ const paths = {
             'node_modules/dialog-polyfill/dialog-polyfill.css'
         ],
         images: 'public/src/images/*',
-        html: ['public/src/*.html', 'public/src/manage/*.html'],
+        html: 'public/src/*.html',
         copy: [
             'public/src/.htaccess',
             'public/src/manifest.json',
@@ -35,7 +35,7 @@ const paths = {
         js: 'public/build/scripts/',
         sass: 'public/build/styles/',
         images: 'public/build/images/',
-        html: ['public/build/', 'public/build/manage/'],
+        html: 'public/build/',
         copy: 'public/build/'
     }
 };
@@ -80,12 +80,9 @@ gulp.task('imagemin', () => pump([
  * Minify HTML
  */
 gulp.task('htmlmin', () => pump([
-    gulp.src(paths.src.html[0]),
+    gulp.src(paths.src.html),
     htmlmin({collapseWhitespace: true}),
-    gulp.dest(paths.dest.html[0]),
-    gulp.src(paths.src.html[1]),
-    htmlmin({collapseWhitespace: true}),
-    gulp.dest(paths.dest.html[1])
+    gulp.dest(paths.dest.html)
 ]));
 
 /**

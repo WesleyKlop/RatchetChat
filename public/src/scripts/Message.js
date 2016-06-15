@@ -32,10 +32,14 @@ class Message {
         return 'snackbar';
     }
 
+    /**
+     * Message constructor
+     * @constructor
+     */
     constructor() {
         // Class variables
         this.common_name = '';
-        this.flags = [];
+        this.flags = {};
         this.payload = '';
         this.status = this.STATUS_FAILURE;
         this.timestamp = -1;
@@ -45,19 +49,19 @@ class Message {
 
     /**
      * Create the Message object from either a string or parsed json
-     * @param {string|object} json
+     * @param {string|object} values
      * @returns {Message}
      * @constructor
      */
-    static Build(json) {
-        let obj = (typeof json === 'string') ? JSON.parse(json) : json,
+    static Build(values) {
+        let obj = (typeof values === 'string') ? JSON.parse(values) : values,
             msg = new this();
 
         msg.type = obj.type || Message.TYPE_MESSAGE;
-        msg.status = obj.status || Message.STATUS_FAILURE;
+        msg.status = obj.status;
         msg.common_name = obj.common_name || undefined;
         msg.username = obj.username || undefined;
-        msg.flags = obj.flags || [];
+        msg.flags = obj.flags || {};
         msg.timestamp = obj.timestamp || Math.floor(Date.now() / 1000);
         msg.payload = obj.payload || undefined;
 
@@ -75,18 +79,33 @@ class Message {
         Object.keys(this).forEach((key) => {
             // Warn if any of the properties are empty
             if (!this[key] && this[key] !== 0) {
-                console.warn(key, 'is empty! value:', this[key]);
+                console.warn(key, 'is empty! value:', this[key], "\n", this);
                 valid = false;
             }
         });
+
+        if (valid)
+            this.status = Message.STATUS_SUCCESS;
+
         return valid;
     }
 
     hasFlag(flag) {
         console.log(this.flags);
-        if (typeof this.flags.constructor === Array) // flags is an array
-            return this.flags.includes(flag);
-        else // flags is an object
-            return this.flags.hasOwnProperty(flag);
+        // flags is an object
+        return this.flags.hasOwnProperty(flag);
+    }
+
+    addFlag(key, value) {
+        console.log(value);
+        if (value) {
+            this.flags[key] = value;
+        } else {
+            this.flags[key] = key;
+        }
+    }
+
+    toJson() {
+        return JSON.stringify(this);
     }
 }
