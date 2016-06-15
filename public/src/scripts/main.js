@@ -131,11 +131,12 @@
         }
     };
 
-    sendBtn.addEventListener('click', (e) => {
+    let sendMessage = (e) => {
         e.preventDefault();
         let message = {
             type: MSG_TYPE_MESSAGE,
-            payload: msgBox.value,
+            // Replace \n with "  \n" for markdown
+            payload: msgBox.value.replace(/\n/g, "  \n"),
             username: user.username,
             common_name: user.common_name,
             time: Math.floor(Date.now() / 1000)
@@ -162,7 +163,9 @@
 
         // Clear messageBox
         msgBox.value = '';
-    });
+    };
+
+    sendBtn.addEventListener('click', sendMessage);
 
     signInButton.addEventListener('click', () => {
         signInDialog.showModal();
@@ -253,5 +256,14 @@
     signInCancel.addEventListener('click', (e) => {
         e.preventDefault();
         signInDialog.close();
+    });
+
+    // Send message on enter in chatbox but newline on shift+enter
+    msgBox.addEventListener('keypress', (e) => {
+        console.log(e);
+        // if the user presses enter without holding shift call the sendmessage function
+        if (e.keyCode === 13 && e.shiftKey !== true) {
+            sendMessage(e);
+        }
     });
 })(socketURL);
