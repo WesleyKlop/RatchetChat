@@ -38,11 +38,11 @@ class Message {
      */
     constructor() {
         // Class variables
-        this.common_name = '';
+        this.common_name = undefined;
         this.flags = {};
-        this.payload = '';
+        this.payload = undefined;
         this.status = this.STATUS_FAILURE;
-        this.timestamp = -1;
+        this.timestamp = Date.getTimestamp();
         this.type = this.TYPE_MESSAGE;
         this.username = '';
     }
@@ -62,10 +62,8 @@ class Message {
         msg.common_name = obj.common_name || undefined;
         msg.username = obj.username || undefined;
         msg.flags = obj.flags || {};
-        msg.timestamp = obj.timestamp || Math.floor(Date.now() / 1000);
+        msg.timestamp = obj.timestamp || Date.getTimestamp();
         msg.payload = obj.payload || undefined;
-
-        msg.verify();
 
         return msg;
     }
@@ -91,13 +89,10 @@ class Message {
     }
 
     hasFlag(flag) {
-        console.log(this.flags);
-        // flags is an object
         return this.flags.hasOwnProperty(flag);
     }
 
     addFlag(key, value) {
-        console.log(value);
         if (value) {
             this.flags[key] = value;
         } else {

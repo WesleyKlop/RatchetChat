@@ -37,11 +37,12 @@
         // Try automatically signing in using the JWT
         console.info('Sending a silent authentication message to the server!');
         if (localStorage.getItem('UserKey')) {
-            conn.send(JSON.stringify({
-                type: 'verify',
-                flags: ['silent'],
-                payload: localStorage.getItem('UserKey')
-            }));
+            let packet = new Message;
+            packet.type = Message.TYPE_VERIFICATION;
+            packet.addFlag('silent');
+            packet.payload = localStorage.getItem('UserKey');
+
+            conn.send(packet.toJson());
         }
     };
 
@@ -64,7 +65,7 @@
                 });
                 break;
             default:
-                console.error("Message is an unkown type! ", message.type);
+                console.error("Message is an unkown type!", message.type);
         }
     };
 
@@ -128,21 +129,17 @@
             messageBox.classList.add('visible');
             chatBox.scrollTop = chatBox.scrollHeight;
         }, 100);
-
-        // Focus on the messagebox
-        msgBox.focus();
     };
 
     let sendMessage = (e) => {
         e.preventDefault();
-        console.log('sendMessage');
         let message = Message.Build({
             type: Message.TYPE_MESSAGE,
             // Replace \n not preceded by 2 spaces with "  \n" for markdown
             payload: msgBox.value.replace(/[^ ]{2}\n/g, "  \n"),
             username: user.username,
             common_name: user.common_name,
-            timestamp: Math.floor(Date.now() / 1000),
+            timestamp: Date.getTimestamp()
         });
 
         if (conn.readyState != 1
@@ -163,6 +160,8 @@
 
         // Clear messageBox
         msgBox.value = '';
+        // Focus on the messagebox
+        msgBox.focus();
     };
 
     sendBtn.addEventListener('click', sendMessage);
@@ -177,7 +176,7 @@
     };
 
     let setAccountHeader = () => {
-        console.log("setting account header", user);
+        console.log("setting account header\n", user);
         if (user.signedIn) {
             accountHeader.textContent = user.common_name;
             accountHeader.removeAttribute('hidden');
@@ -240,6 +239,7 @@
         packet.type = Message.TYPE_VERIFICATION;
         packet.username = username;
         packet.payload = password;
+        packet.status = Message.STATUS_SUCCESS;
 
         // If we want to be rememberd, add that flag
         if (signIn.remember.checked === true)
@@ -248,7 +248,7 @@
         // So we know if we have to store the received JWT
         expectJwt = packet.hasFlag('remember');
 
-        conn.send(JSON.stringify(packet));
+        conn.send(packet.toJson());
     });
 
     signIn.cancel.addEventListener('click', (e) => {
@@ -264,7 +264,7 @@
         }
     });
 
-    // Let the document title change when the user is not focussed on the tab
+    // Let the document title change when the user is not focused on the tab
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
             focused = false;
@@ -272,6 +272,8 @@
             focused = true;
             document.title = "RatchetChat";
             unreadCount = 0;
+            // Refocus on messagebox
+            msgBox.focus();
         }
     });
 })(socketURL);

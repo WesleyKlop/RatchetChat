@@ -6,6 +6,7 @@ use Chat\Config\Config;
 use Chat\Controllers\MessageController;
 use Chat\Db\Db;
 use Exception;
+use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
@@ -57,7 +58,12 @@ class Chat implements MessageComponentInterface
         switch ($message->type) {
             case Message::TYPE_VERIFICATION:
                 if ($message->hasFlag('silent')) {
-                    $jwt = (array)JWT::decode($message->payload, Config::get('jwt.key'), ['HS256']);
+                    try {
+                        $jwt = (array)JWT::decode($message->payload, Config::get('jwt.key'), ['HS256']);
+                    } catch (ExpiredException $e) {
+                        $from->send(json_encode(MessageController::Snackbar('Your token is expired! Please try signing in again.')));
+                        break;
+                    }
                     $username = $jwt['username'];
                     $password = $jwt['password'];
                 } else {
