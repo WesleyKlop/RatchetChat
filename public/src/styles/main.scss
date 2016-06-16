@@ -181,11 +181,17 @@ main, #messages-card {
 }
 
 @media screen and (max-width: 479px) {
-    #messages-card-container, #messages-card {
-        height: 100%;
+    #messages-card-container {
+        height: calc(100% - 94px);
         width: 100%;
+        padding:0;
         margin: 0;
+    }
+    #messages-card {
+        width: 100%;
+        height: 100%;
         padding: 0;
+        margin: 0;
     }
     .mdl-card__supporting-text {
         padding-bottom: 0;
@@ -201,6 +207,8 @@ main, #messages-card {
         top: 56px;
         background-color: #039be5;
         height: 38px;
+        padding-top: 1px;
+        box-sizing: border-box;
         #user-pic {
             width: 33px;
             height: 33px;
