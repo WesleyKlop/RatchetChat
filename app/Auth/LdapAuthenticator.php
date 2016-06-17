@@ -60,10 +60,7 @@ class LdapAuthenticator extends AbstractAuth
             if (($banReason = $this->isBanned($username)) !== false)
                 return MessageController::Snackbar('You are banned!\nReason: ' . $banReason);
 
-            $data = [
-                'username' => $username,
-                'common_name' => $user->getDisplayName()
-            ];
+            $data = \Chat\User::Build($username, $user->getDisplayName());
 
             // Add the user to the users table if it's not in there yet
             if (!$this->userExists($username))

@@ -11,6 +11,7 @@ namespace Chat\Auth;
 use Chat\Config\Config;
 use Chat\Db\Db;
 use Chat\Message;
+use Chat\User;
 use Firebase\JWT\JWT;
 use PDO;
 
@@ -20,7 +21,7 @@ abstract class AbstractAuth
      * Authenticates the user
      * @param string $username
      * @param string $password
-     * @return Message|array the user info in an array or A snackbar Message on error
+     * @return Message|User the user info in an array or A snackbar Message on error
      */
     abstract function authenticate($username, $password);
 
@@ -42,7 +43,7 @@ abstract class AbstractAuth
             'username' => $username,
             'password' => $password
         ];
-        
+
         $jwt = JWT::encode($token, $key);
 
         return $jwt;
