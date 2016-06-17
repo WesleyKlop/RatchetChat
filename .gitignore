@@ -12,3 +12,4 @@ public/build/*
 !public/build/.gitkeep
 .env
 database/database.sqlite
+tests/

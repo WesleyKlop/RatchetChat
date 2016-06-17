@@ -1,5 +1,5 @@
 # RatchetChat
-A Websocket based chat system using Ratchet and Adldap2
+A Websocket based chat system using Ratchet, Adldap2 and a lot more!
 
 ## Installation
 
@@ -27,7 +27,16 @@ gulp build
 # Run the server!
 bin/server
 ```
-You should now be able to chat by visiting $webroot. Make sure you have port forwarded the APP_PORT in your router
+You should now be able to chat by visiting $webroot.  
+Make sure you have port forwarded the APP_PORT in your router if you want to use this from outside your network.
+
+## TODO
+
+* Create a way for users to register when using the Db authenticator.
+* A backend management page for admins.
+* User classes.
+* An app icon.
+* A better name!
 
 ## Contributing
 
