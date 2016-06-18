@@ -106,7 +106,7 @@ class Message implements JsonSerializable
         $message->flags = isset($payload['flags']) ? $payload["flags"] : [];
         $message->username = isset($payload['username']) ? $payload["username"] : '';
         $message->common_name = isset($payload['common_name']) ? $payload["common_name"] : '';
-        $message->datetime = new DateTime(isset($payload['timestamp']) ? '@' . $payload['timestamp'] : 'now');
+        $message->datetime = (new DateTime)->setTimestamp(isset($payload['timestamp']) ? $payload['timestamp'] : 'now');
 
         return $message;
     }

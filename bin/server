@@ -29,6 +29,7 @@ $server = IoServer::factory(
     ),
     Config::get('app.port')
 );
+
 echo "Starting websocket server on " . Config::get('app.host') . ':' . Config::get('app.port') . PHP_EOL;
 echo "Using authenticator: " . Config::get('app.auth') . PHP_EOL;
 
