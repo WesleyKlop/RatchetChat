@@ -29,3 +29,7 @@ CREATE TABLE users
   user_id     INT(11) PRIMARY KEY NOT NULL,
   common_name VARCHAR(255)        NOT NULL
 );
+
+-- Only run this when using the database authenticator
+ALTER TABLE users
+    ADD password_hash VARCHAR(255);

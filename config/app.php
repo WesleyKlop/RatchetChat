@@ -9,4 +9,5 @@ return [
     'debug' => getenv('APP_DEBUG'),
     'host' => getenv('APP_HOST'),
     'port' => getenv('APP_PORT'),
+    'auth' => getenv('APP_AUTH'),
 ];

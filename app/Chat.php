@@ -1,6 +1,7 @@
 <?php
 namespace Chat;
 
+use Chat\Auth\DbAuthenticator;
 use Chat\Auth\LdapAuthenticator;
 use Chat\Config\Config;
 use Chat\Controllers\MessageController;
@@ -26,6 +27,16 @@ class Chat implements MessageComponentInterface
         $this->clients = new SplObjectStorage;
         self::$authenticator = new LdapAuthenticator(Config::get('ldap'));
         $this->msgController = new MessageController();
+        switch (Config::get('app.auth')) {
+            case 'ldap':
+                self::$authenticator = new LdapAuthenticator(Config::get('ldap'));
+                break;
+            case 'database':
+                self::$authenticator = new DbAuthenticator();
+                break;
+            default:
+                throw new Exception('Invalid authenticator selected!');
+        }
     }
 
     /**
@@ -83,14 +94,14 @@ class Chat implements MessageComponentInterface
 
                 // We should have the users' username and common_name, save that in the session
                 $from->Session->set('authenticated', true);
-                $from->Session->set('username', $response['username']);
-                $from->Session->set('common_name', $response['common_name']);
+                $from->Session->set('username', $response->getUsername());
+                $from->Session->set('common_name', $response->getCommonName());
 
                 // And now we send a friendly message back
                 $msg = new Message();
                 $msg->type = Message::TYPE_VERIFICATION;
-                $msg->username = $response['username'];
-                $msg->common_name = $response['common_name'];
+                $msg->username = $response->getUsername();
+                $msg->common_name = $response->getCommonName();
                 $msg->status = Message::STATUS_SUCCESS;
 
                 // Write signin notice to stdout
