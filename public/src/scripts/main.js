@@ -15,11 +15,9 @@
 
     let conn = new WebSocket(socketURL),
         sendBtn = document.querySelector('#submit'),
-        chatBox = document.querySelector('#messages'),
         msgBox = document.querySelector('#message'),
         signOutButton = document.querySelector('#sign-out'),
-        snackbar = document.querySelector('#must-signin-snackbar'),
-        accountHeader = document.querySelector('#user-name');
+        snackbar = document.querySelector('#snackbar');
 
     let user = {
         signedIn: false,
@@ -59,10 +57,7 @@
                 processAuth(message);
                 break;
             case Message.TYPE_SNACKBAR:
-                showSnackbar({
-                    message: message.payload,
-                    timeout: message.flags.timeout
-                });
+                UiController.showSnackbar(message.payload, message.flags.timeout);
                 break;
             default:
                 console.error("Message is an unkown type!", message.type);
@@ -74,28 +69,8 @@
         if (message.status !== Message.STATUS_SUCCESS)
             return console.warn('Message was invalid!');
 
-        // Create a container to hold the message
-        let container = document.createElement('div');
-        container.innerHTML = '<div class="message-container">' +
-            '<div class="spacing"></div>' +
-            '<div class="message"></div>' +
-            '<div class="name"></div>' +
-            '<div class="time"></div>' +
-            '</div>';
-
-        // Fill the actual messagebox
-        let messageBox = container.firstChild,
-            date = new Date(message.timestamp * 1000),
-            hours = date.getHours(),
-            minutes = "0" + date.getMinutes(),
-            seconds = "0" + date.getSeconds();
-
-        // Parse markdown
-        messageBox.querySelector('.message').innerHTML = markdown.toHTML(message.payload);
-
-        messageBox.querySelector('.name').textContent = message.common_name;
-        messageBox.querySelector('.time').textContent = `${hours}:${minutes.substr(-2)}:${seconds.substr(-2)}`;
-        //messageBox.dataset.username = message.username;
+        // Add the message to the messages container
+        UiController.appendMessage(message);
 
         // Send a notification if the message is not send by the user
         if (message.username !== user.username && !message.flags.includes('silent')) {
@@ -122,17 +97,20 @@
                 document.title = "(" + unreadCount + ") RatchetChat";
             }
         }
-
-        // Add the message to the chatbox and make it visible, then scroll to the bottom of the container
-        chatBox.appendChild(messageBox);
-        setTimeout(() => {
-            messageBox.classList.add('visible');
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }, 100);
     };
 
     let sendMessage = (e) => {
         e.preventDefault();
+
+        // Intercept commands
+        if (msgBox.value.startsWith('/')) {
+            let params = msgBox.value.substr(1).split(' '),
+                command = params.shift();
+            console.log(command, params);
+            return CommandProcessor.Process(command, params);
+        }
+
+        // Else send message
         let message = Message.Build({
             type: Message.TYPE_MESSAGE,
             // Replace \n not preceded by 2 spaces with "  \n" for markdown
@@ -147,7 +125,7 @@
             return;
 
         if (!user.signedIn) {
-            showSnackbar({
+            UiController.showSnackbar({
                 message: 'You must sign in first',
                 timeout: 2000,
                 actionText: 'Sign in',
@@ -159,7 +137,7 @@
         conn.send(message.toJson());
 
         // Clear messageBox
-        msgBox.value = '';
+        UiController.clearMessageBox();
         // Focus on the messagebox
         msgBox.focus();
     };
@@ -170,28 +148,6 @@
         signIn.dialog.showModal();
     });
 
-    let showSnackbar = (data) => {
-        //noinspection JSUnresolvedFunction
-        snackbar.MaterialSnackbar.showSnackbar(data);
-    };
-
-    let setAccountHeader = () => {
-        console.log("setting account header\n", user);
-        if (user.signedIn) {
-            accountHeader.textContent = user.common_name;
-            accountHeader.removeAttribute('hidden');
-
-            signIn.button.setAttribute('hidden', 'true');
-            signOutButton.removeAttribute('hidden');
-        } else {
-            accountHeader.setAttribute('hidden', 'true');
-            accountHeader.textContent = '';
-
-            signOutButton.setAttribute('hidden', 'true');
-            signIn.button.removeAttribute('hidden');
-        }
-    };
-
     let processAuth = (response) => {
         user.common_name = response.common_name;
         user.username = response.username;
@@ -201,10 +157,7 @@
         if (!response.hasFlag('silent')) {
             signIn.dialog.close();
 
-            showSnackbar({
-                message: 'Successfully signed in as ' + user.common_name,
-                timeout: 2500
-            });
+            UiController.showSnackbar('Successfully signed in as ' + user.common_name, 2500);
         }
 
         // Save the JWT if we're expecting one
@@ -213,7 +166,7 @@
             expectJwt = false;
         }
 
-        setAccountHeader();
+        UiController.setAccountHeader(user);
     };
 
     signOutButton.addEventListener('click', () => {
@@ -224,11 +177,8 @@
         // Remove the JWT token because you don't expect to sign in after a refresh after logging out
         localStorage.removeItem('UserKey');
 
-        setAccountHeader();
-        showSnackbar({
-            message: 'Successfully signed out.',
-            timeout: 2000
-        });
+        UiController.setAccountHeader(user);
+        UiController.showSnackbar('Successfully signed out.', 2000);
     });
 
     signIn.form.addEventListener('submit', (e) => {
