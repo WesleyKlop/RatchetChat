@@ -15,9 +15,9 @@ import del from 'del';
 const paths = {
     src: {
         js: [
-            'public/src/scripts/*.js',
             'node_modules/dialog-polyfill/dialog-polyfill.js',
-            'node_modules/markdown/lib/markdown.js'
+            'node_modules/markdown/lib/markdown.js',
+            'public/src/scripts/*.js'
         ],
         sass: [
             'public/src/styles/*.scss',

@@ -140,6 +140,9 @@ main, #messages-card {
         width: 100px;
         margin: 15px 0 0 10px;
     }
+    textarea {
+        resize: none;
+    }
 }
 
 .mdl-card {
