@@ -48,7 +48,8 @@ const paths = {
 
 const swConfig = {
     cacheId: 'RatchetChat',
-    handleFetch: true,
+    // Set to true when generating production TODO: automate this
+    handleFetch: false,
     staticFileGlobs: [
         paths.dest.styles + '**.css',
         paths.dest.images + '**.*',
