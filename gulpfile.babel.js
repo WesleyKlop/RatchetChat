@@ -10,18 +10,22 @@ import babel from 'gulp-babel';
 import imagemin from 'gulp-imagemin';
 import htmlmin from 'gulp-htmlmin';
 import concat from 'gulp-concat';
+import webserver from 'gulp-webserver';
 import del from 'del';
+import swPrecache from 'sw-precache';
 
 const paths = {
     src: {
-        js: [
+        scripts: [
+            'node_modules/material-design-lite/material.js',
             'node_modules/dialog-polyfill/dialog-polyfill.js',
             'node_modules/markdown/lib/markdown.js',
             'public/src/scripts/*.js'
         ],
-        sass: [
-            'public/src/styles/*.scss',
-            'node_modules/dialog-polyfill/dialog-polyfill.css'
+        styles: [
+            'node_modules/material-design-lite/src/material-design-lite.scss',
+            'node_modules/dialog-polyfill/dialog-polyfill.css',
+            'public/src/styles/*.scss'
         ],
         images: 'public/src/images/*',
         html: 'public/src/*.html',
@@ -32,12 +36,28 @@ const paths = {
         ]
     },
     dest: {
-        js: 'public/build/scripts/',
-        sass: 'public/build/styles/',
+        root: 'public/build',
+        scripts: 'public/build/scripts/',
+        styles: 'public/build/styles/',
         images: 'public/build/images/',
         html: 'public/build/',
-        copy: 'public/build/'
+        copy: 'public/build/',
+        sw: 'public/build/service-worker.js'
     }
+};
+
+const swConfig = {
+    cacheId: 'RatchetChat',
+    // Set to true when generating production TODO: automate this
+    handleFetch: false,
+    staticFileGlobs: [
+        paths.dest.styles + '**.css',
+        paths.dest.images + '**.*',
+        paths.dest.scripts + '**.js',
+        paths.dest.html + '**.html'
+    ],
+    stripPrefix: paths.dest.root,
+    verbose: true
 };
 
 //noinspection JSUnresolvedFunction
@@ -45,27 +65,32 @@ const paths = {
  * Compile sass and write sourcemaps
  */
 gulp.task('style', () => pump([
-    gulp.src(paths.src.sass),
+    gulp.src(paths.src.styles),
     sourcemaps.init(),
     sass().on('error', sass.logError),
     autoprefixer(),
     concat('package.min.css'),
     sourcemaps.write('.'),
-    gulp.dest(paths.dest.sass)
+    gulp.dest(paths.dest.styles)
 ]));
 
 /**
  * Compile JavaScript using babel and uglify
  */
 gulp.task('compress', () => pump([
-    gulp.src(paths.src.js),
+    gulp.src(paths.src.scripts),
     sourcemaps.init(),
     babel(),
     concat('package.min.js'),
     uglify(),
     sourcemaps.write(),
-    gulp.dest(paths.dest.js)
+    gulp.dest(paths.dest.scripts)
 ]));
+
+/**
+ * Compile the service-worker using babel and uglify it
+ */
+gulp.task('generate-sw', () => swPrecache.write(paths.dest.sw, swConfig));
 
 /**
  * Optimize images
@@ -100,9 +125,21 @@ gulp.task('watch', () => {
     gulp.watch(paths.src.html, ['htmlmin']);
     gulp.watch(paths.src.images, ['imagemin']);
     gulp.watch(paths.src.copy, ['copy']);
-    gulp.watch(paths.src.js, ['compress']);
+    gulp.watch(paths.src.scripts, ['compress']);
     gulp.watch(paths.src.style, ['style']);
 });
+
+/**
+ * Webserver to use locally
+ */
+gulp.task('webserver', () => pump([
+    gulp.src('public/build'),
+    webserver({
+        livereload: true,
+        https: false,
+        open: true
+    })
+]));
 
 /**
  * Clean build folder
@@ -112,9 +149,14 @@ gulp.task('clean', () => del(['public/build/.*', 'public/build/*']));
 /**
  * Build complete package
  */
-gulp.task('build', ['style', 'compress', 'imagemin', 'htmlmin', 'copy']);
+gulp.task('build', ['style', 'compress', 'imagemin', 'htmlmin', 'copy', 'generate-sw']);
 
 /**
  * Build and Watch
  */
 gulp.task('default', ['build', 'watch']);
+
+/**
+ * Build and serve locally
+ */
+gulp.task('serve', ['build', 'watch', 'webserver']);

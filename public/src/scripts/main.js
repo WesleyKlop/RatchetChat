@@ -29,6 +29,8 @@
         focused = true,
         unreadCount = 0;
 
+    let app = new AppController();
+
     conn.onopen = () => {
         console.info("Connection with", socketURL, "is established!");
 
@@ -106,7 +108,6 @@
         if (msgBox.value.startsWith('/')) {
             let params = msgBox.value.substr(1).split(' '),
                 command = params.shift();
-            console.log(command, params);
             return CommandProcessor.Process(command, params);
         }
 
@@ -226,4 +227,9 @@
             msgBox.focus();
         }
     });
+
+    app.registerSW();
+    
+    // Add event listeners for connection events
+    window.addEventListener('offline', () => UiController.showSnackbar("Showing cached messages as you are offline.", 2500));
 })(socketURL);
