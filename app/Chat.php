@@ -7,8 +7,6 @@ use Chat\Config\Config;
 use Chat\Controllers\MessageController;
 use Chat\Db\Db;
 use Exception;
-use Firebase\JWT\ExpiredException;
-use Firebase\JWT\JWT;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
 use SplObjectStorage;
@@ -69,14 +67,9 @@ class Chat implements MessageComponentInterface
         switch ($message->type) {
             case Message::TYPE_VERIFICATION:
                 if ($message->hasFlag('silent')) {
-                    try {
-                        $jwt = (array)JWT::decode($message->payload, Config::get('jwt.key'), ['HS256']);
-                    } catch (ExpiredException $e) {
-                        $from->send(json_encode(MessageController::Snackbar('Your token is expired! Please try signing in again.')));
-                        break;
-                    }
-                    $username = $jwt['username'];
-                    $password = $jwt['password'];
+                    $jws = self::$authenticator->decryptJWE($message->payload);
+                    $username = $jws['username'];
+                    $password = $jws['password'];
                 } else {
                     $username = $message->username;
                     $password = $message->payload;
@@ -113,7 +106,7 @@ class Chat implements MessageComponentInterface
 
                 // Add a JWT as payload if the message has the 'remember' flag
                 if ($message->hasFlag('remember'))
-                    $msg->payload = self::$authenticator->generateJWT($message->username, $message->payload);
+                    $msg->payload = self::$authenticator->generateJWE($message->username, $message->payload);
 
                 // Send the response
                 $from->send(json_encode($msg));
@@ -181,7 +174,7 @@ class Chat implements MessageComponentInterface
      */
     public function onError(ConnectionInterface $conn, Exception $e)
     {
-        echo "Error occurred, blame " . $conn->Session->get('common_name') . '!' . PHP_EOL;
+        echo "Error occurred, blame " . $conn->Session->get('common_name') . ' (ID ' . $conn->resourceId . ')!' . PHP_EOL;
         $conn->close();
 
         //rethrow the exception YOLO

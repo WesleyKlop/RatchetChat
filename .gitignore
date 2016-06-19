@@ -13,3 +13,5 @@ public/build/*
 .env
 database/database.sqlite
 tests/
+/keys/*
+!/keys/.gitkeep

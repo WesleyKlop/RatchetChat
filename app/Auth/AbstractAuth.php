@@ -12,7 +12,9 @@ use Chat\Config\Config;
 use Chat\Db\Db;
 use Chat\Message;
 use Chat\User;
-use Firebase\JWT\JWT;
+use Jose\Factory\JWEFactory;
+use Jose\Factory\JWKFactory;
+use Jose\Loader;
 use PDO;
 
 abstract class AbstractAuth
@@ -26,27 +28,68 @@ abstract class AbstractAuth
     abstract function authenticate($username, $password);
 
     /**
-     * This function generates a JWT for the client to store in localstorage for authentication
+     * This function generates a JWS for the client to store in localstorage for authentication
      * @param string $username
      * @param string $password
-     * @return string the JWT
+     * @return string the JWS
      */
-    public function generateJWT($username, $password)
+    public function generateJWE($username, $password)
     {
-        $key = Config::get('jwt.key');
-        $token = [
+        $key = JWKFactory::createFromKeyFile(
+            __DIR__ . '/../../keys/public.pem',
+            null,
+            [
+                'kid' => 'Public RSA key',
+                'use' => 'enc',
+                'alg' => 'RSA-OAEP'
+            ]
+        );
+        $jws = [
             'iss' => Config::get('jwt.iss'),
             'aud' => Config::get('jwt.aud'),
             'iat' => time(),
             // Token is valid for 30 days
             'exp' => time() + 2592000,
+            'nbf' => time(),
             'username' => $username,
             'password' => $password
         ];
+        $jwe = JWEFactory::createJWEToCompactJSON(
+            $jws,
+            $key,
+            [
+                'alg' => 'RSA-OAEP',
+                'enc' => 'A256CBC-HS512',
+                'zip' => 'DEF'
+            ]
+        );
 
-        $jwt = JWT::encode($token, $key);
+        return $jwe;
+    }
 
-        return $jwt;
+    /**
+     * @param $input
+     * @return array
+     */
+    public function decryptJWE($input)
+    {
+        $key = JWKFactory::createFromKeyFile(
+            __DIR__ . '/../../keys/private.pem',
+            Config::get('jwt.key'),
+            [
+                'kid' => 'Private RSA key',
+                'use' => 'enc',
+                'alg' => 'RSA-OAEP'
+            ]
+        );
+        $loader = new Loader();
+        $jws = $loader->loadAndDecryptUsingKey(
+            $input,
+            $key,
+            ['RSA-OAEP'],
+            ['A256CBC-HS512']
+        );
+        return $jws->getPayload();
     }
 
     /**

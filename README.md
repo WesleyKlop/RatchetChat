@@ -3,20 +3,44 @@ A Websocket based chat system using Ratchet, Adldap2 and a lot more!
 
 ## Installation
 
+Using the setup script
+
 ```shell
 # Clone the repo
 git clone git@github.com:WesleyKlop/RatchetChat.git && cd RatchetChat
+
+# Run the setup script
+bin/setup.sh
+
+# (Recommened) create symlink from your webroot to the ratchetchat folder
+ln -s public/build /var/www/$webroot
+```
+
+Or
+
+```shell
+# Clone the repo
+git clone git@github.com:WesleyKlop/RatchetChat.git && cd RatchetChat
+
 # Install dependencies
 composer install
 npm install
+
+# Generate certificates
+openssl genrsa -aes256 -out keys/private.pem # Remember the password used here, you're going to need it for the .env file
+openssl rsa -in keys/private.pem -pubout -out "keys/public.pem"
+
 # Copy the .env.example file
 cp .env.example .env
+
 # Edit the settings in there
 vim .env
-# Import the required tables using one of the sql files in database/
-mysql RatchetChat < database/tables.mysql.sql
-# (Recommened) create symlink from your webroot to the ratchetchat folder
-ln -s public/build /var/www/$webroot/public_html
+
+# Import the required tables using sql file in database/
+mysql RatchetChat < database/tables.sql
+
+# (Recommened) create symlink from your webroot to the ratchetchat/public/build folder
+ln -s public/build /var/www/$webroot
 ```
 
 ## Usage
@@ -24,6 +48,7 @@ ln -s public/build /var/www/$webroot/public_html
 ```shell
 # Build the website using gulp
 gulp build
+
 # Run the server!
 bin/server
 ```

@@ -47,7 +47,7 @@ class Config
             "db" => require self::CONF_PATH . '/database.php',
             "ldap" => require self::CONF_PATH . '/ldap.php',
             "app" => require self::CONF_PATH . '/app.php',
-            "jwt" => require self::CONF_PATH . '/jwt.php',
+            "jwe" => require self::CONF_PATH . '/jwe.php',
         ];
     }
 }
