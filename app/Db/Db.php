@@ -8,8 +8,8 @@ use PDO;
 
 final class Db
 {
-    /** @var PDO $dbh */
-    private static $dbh;
+    /** @var PDO $pdo */
+    private static $pdo;
     /** @var FluentPDO $fpdo */
     private static $fpdo;
     private static $options = [
@@ -28,14 +28,23 @@ final class Db
      */
     public static function getInstance()
     {
-        if (!(self::$dbh instanceof PDO)) {
-            $dsn = Config::get('db.connection') . ':dbname=' . Config::get('db.database') . ';host=' . Config::get('db.host') . ';charset=UTF8;port=' . Config::get('db.port');
-            self::$dbh = new PDO($dsn, Config::get('db.username'), Config::get('db.password'), self::$options);
-        }
+        self::getPdo();
         if (!(self::$fpdo instanceof FluentPDO)) {
-            self::$fpdo = new FluentPDO(self::$dbh);
+            self::$fpdo = new FluentPDO(self::$pdo);
         }
         return self::$fpdo;
+    }
+
+    /**
+     * @return PDO
+     */
+    public static function getPdo()
+    {
+        if (!(self::$pdo instanceof PDO)) {
+            $dsn = Config::get('db.connection') . ':dbname=' . Config::get('db.database') . ';host=' . Config::get('db.host') . ';charset=UTF8;port=' . Config::get('db.port');
+            self::$pdo = new PDO($dsn, Config::get('db.username'), Config::get('db.password'), self::$options);
+        }
+        return self::$pdo;
     }
 
     /** @ignore */
