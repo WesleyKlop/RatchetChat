@@ -29,6 +29,8 @@
         focused = true,
         unreadCount = 0;
 
+    let app = new AppController();
+
     conn.onopen = () => {
         console.info("Connection with", socketURL, "is established!");
 
@@ -226,4 +228,6 @@
             msgBox.focus();
         }
     });
+
+    app.registerSW();
 })(socketURL);

@@ -1,5 +1,5 @@
 (() => {
-// Timestamp shim
+    // Timestamp shim
     if (!Date.now) {
         Date.now = () => new Date().getTime();
     }
@@ -48,3 +48,7 @@
         }
     }
 })();
+
+let log = (tag, message) => {
+    console.log(`[${tag}] ${message}`);
+};

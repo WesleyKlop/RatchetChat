@@ -10,6 +10,7 @@ import babel from 'gulp-babel';
 import imagemin from 'gulp-imagemin';
 import htmlmin from 'gulp-htmlmin';
 import concat from 'gulp-concat';
+import webserver from 'gulp-webserver';
 import del from 'del';
 
 const paths = {
@@ -29,14 +30,16 @@ const paths = {
             'public/src/.htaccess',
             'public/src/manifest.json',
             'public/src/manifest.webapp'
-        ]
+        ],
+        sw: 'public/src/service-worker.js'
     },
     dest: {
         js: 'public/build/scripts/',
         sass: 'public/build/styles/',
         images: 'public/build/images/',
         html: 'public/build/',
-        copy: 'public/build/'
+        copy: 'public/build/',
+        sw: 'public/build/'
     }
 };
 
@@ -65,6 +68,20 @@ gulp.task('compress', () => pump([
     uglify(),
     sourcemaps.write(),
     gulp.dest(paths.dest.js)
+]));
+
+/**
+ * Compile the service-worker using babel and uglify it
+ */
+gulp.task('build-sw', () => pump([
+    gulp.src(paths.src.sw),
+    sourcemaps.init(),
+    babel(),
+    uglify({
+        mangle: false
+    }),
+    sourcemaps.write(),
+    gulp.dest(paths.dest.sw)
 ]));
 
 /**
@@ -105,6 +122,18 @@ gulp.task('watch', () => {
 });
 
 /**
+ * Webserver to use locally
+ */
+gulp.task('webserver', () => pump([
+    gulp.src('public/build'),
+    webserver({
+        livereload: true,
+        https: false,
+        open: true
+    })
+]));
+
+/**
  * Clean build folder
  */
 gulp.task('clean', () => del(['public/build/.*', 'public/build/*']));
@@ -112,9 +141,14 @@ gulp.task('clean', () => del(['public/build/.*', 'public/build/*']));
 /**
  * Build complete package
  */
-gulp.task('build', ['style', 'compress', 'imagemin', 'htmlmin', 'copy']);
+gulp.task('build', ['style', 'compress', 'imagemin', 'htmlmin', 'copy', 'build-sw']);
 
 /**
  * Build and Watch
  */
 gulp.task('default', ['build', 'watch']);
+
+/**
+ * Build and serve locally
+ */
+gulp.task('serve', ['build', 'webserver']);
