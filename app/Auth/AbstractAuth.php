@@ -45,8 +45,8 @@ abstract class AbstractAuth
             ]
         );
         $jws = [
-            'iss' => Config::get('jwt.iss'),
-            'aud' => Config::get('jwt.aud'),
+            'iss' => Config::get('jwe.iss'),
+            'aud' => Config::get('jwe.aud'),
             'iat' => time(),
             // Token is valid for 30 days
             'exp' => time() + 2592000,
@@ -75,7 +75,7 @@ abstract class AbstractAuth
     {
         $key = JWKFactory::createFromKeyFile(
             __DIR__ . '/../../keys/private.pem',
-            Config::get('jwt.key'),
+            Config::get('jwe.pass'),
             [
                 'kid' => 'Private RSA key',
                 'use' => 'enc',
