@@ -48,6 +48,8 @@ class LdapAuthenticator extends AbstractAuth
     {
         // Try authenticating
         try {
+            $this->provider->connect();
+            
             if (!$this->provider->auth()->attempt($username, $password, true))
                 return MessageController::Snackbar('Invalid username/password');
 
