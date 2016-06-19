@@ -1,6 +1,6 @@
 {
-    "name": "wesleyklop/chat",
-    "description": "Chat app",
+    "name": "wesleyklop/ratchetchat",
+    "description": "Websocket based chat system using Ratchet",
     "require": {
         "cboden/ratchet": "^0.3.4",
         "adldap2/adldap2": "v6.0.15",
@@ -16,7 +16,11 @@
     "authors": [
         {
             "name": "Wesley Klop",
-            "email": "wesley19097@gmail.com"
+            "email": "wesley19097@gmail.com",
+            "homepage": "https://wesleyklop.nl",
+            "role": "Developer"
         }
-    ]
+    ],
+    "license": "MIT",
+    "type": "project"
 }
