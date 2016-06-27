@@ -13,7 +13,7 @@ use SplObjectStorage;
 
 class Chat implements MessageComponentInterface
 {
-    protected static $authenticator;
+    protected $authenticator;
     protected $clients;
     protected $msgController;
 
@@ -23,14 +23,14 @@ class Chat implements MessageComponentInterface
     public function __construct()
     {
         $this->clients = new SplObjectStorage;
-        self::$authenticator = new LdapAuthenticator(Config::get('ldap'));
+        $this->authenticator = new LdapAuthenticator(Config::get('ldap'));
         $this->msgController = new MessageController();
         switch (Config::get('app.auth')) {
             case 'ldap':
-                self::$authenticator = new LdapAuthenticator(Config::get('ldap'));
+                $this->authenticator = new LdapAuthenticator(Config::get('ldap'));
                 break;
             case 'database':
-                self::$authenticator = new DbAuthenticator();
+                $this->authenticator = new DbAuthenticator();
                 break;
             default:
                 throw new Exception('Invalid authenticator selected!');
@@ -67,7 +67,7 @@ class Chat implements MessageComponentInterface
         switch ($message->type) {
             case Message::TYPE_VERIFICATION:
                 if ($message->hasFlag('silent')) {
-                    $jws = self::$authenticator->decryptJWE($message->payload);
+                    $jws = $this->authenticator->decryptJWE($message->payload);
                     $username = $jws['username'];
                     $password = $jws['password'];
                 } else {
@@ -75,7 +75,7 @@ class Chat implements MessageComponentInterface
                     $password = $message->payload;
                 }
 
-                $response = self::$authenticator->authenticate($username, $password);
+                $response = $this->authenticator->authenticate($username, $password);
 
                 // If we got a message object we can send that and stop there
                 if ($response instanceof Message && $response->type === Message::TYPE_SNACKBAR) {
@@ -106,7 +106,7 @@ class Chat implements MessageComponentInterface
 
                 // Add a JWT as payload if the message has the 'remember' flag
                 if ($message->hasFlag('remember'))
-                    $msg->payload = self::$authenticator->generateJWE($message->username, $message->payload);
+                    $msg->payload = $this->authenticator->generateJWE($message->username, $message->payload);
 
                 // Send the response
                 $from->send(json_encode($msg));

@@ -78,7 +78,7 @@ class MessageController
     }
 
     /**
-     * Build a message from what we received from the database
+     * Build a message from what we received from the database. Add existing flags if they exist
      * @param array $fields
      * @param array $flags
      * @return Message
