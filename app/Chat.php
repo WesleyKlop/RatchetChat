@@ -23,7 +23,6 @@ class Chat implements MessageComponentInterface
     public function __construct()
     {
         $this->clients = new SplObjectStorage;
-        $this->authenticator = new LdapAuthenticator(Config::get('ldap'));
         $this->msgController = new MessageController();
         switch (Config::get('app.auth')) {
             case 'ldap':
@@ -175,9 +174,9 @@ class Chat implements MessageComponentInterface
     public function onError(ConnectionInterface $conn, Exception $e)
     {
         echo "Error occurred, blame " . $conn->Session->get('common_name') . ' (ID ' . $conn->resourceId . ')!' . PHP_EOL;
+        echo $e->getMessage() . PHP_EOL;
         $conn->close();
 
-        //rethrow the exception YOLO
-        throw $e;
+        exit;
     }
 }
