@@ -74,6 +74,17 @@ class Chat implements MessageComponentInterface
                     $password = $message->payload;
                 }
 
+                // Check if the user wants to register and we're using the db auth
+                if ($message->hasFlag('register') && $this->authenticator instanceof DbAuthenticator) {
+                    // Common name is the same as username
+                    try {
+                        $this->authenticator->register($message->username, $message->payload);
+                    } catch (\InvalidArgumentException $e) {
+                        $from->send(json_encode(MessageController::Snackbar($e->getMessage())));
+                        break;
+                    }
+                }
+
                 $response = $this->authenticator->authenticate($username, $password);
 
                 // If we got a message object we can send that and stop there

@@ -127,23 +127,27 @@ class Message implements JsonSerializable
         $this->flags = array_unique($this->flags);
     }
 
+    /**
+     * @param bool $signInFailed
+     * @return void|null
+     */
     public function verify($signInFailed = false)
     {
         // We're just going to stop here if there was an error
         if ($this->status === self::STATUS_ERROR)
-            return;
+            return var_dump("Message status is error");
 
         // First we invalidate the message
         $this->status = self::STATUS_FAILURE;
 
         // We should keep the status on failure if the user failed to sign in
-        if ($this->type === self::TYPE_VERIFICATION && $signInFailed) return;
+        if ($this->type === self::TYPE_VERIFICATION && $signInFailed) return var_dump("Sign in failed");
 
         // Then we verify the things that should always be filled
         if (empty($this->payload)
             || empty($this->type)
             || empty($this->username)
-        ) return;
+        ) return var_dump("Missing payload || type || username");
 
         // Then verify according to message type
         switch ($this->type) {
@@ -151,7 +155,7 @@ class Message implements JsonSerializable
                 // We should have everything filled (except flags)
                 if (empty($this->datetime)
                     || empty($this->common_name)
-                ) return;
+                ) return var_dump("Missing datetime or common_name");
                 break;
             case self::TYPE_VERIFICATION:
                 // We don't need to check anything else
@@ -159,7 +163,7 @@ class Message implements JsonSerializable
         }
 
         // We should be OK now
-        $this->status = self::STATUS_SUCCESS;
+        return $this->status = self::STATUS_SUCCESS;
     }
 
     /**

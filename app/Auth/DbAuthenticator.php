@@ -17,7 +17,6 @@ use PDOStatement;
 
 class DbAuthenticator extends AbstractAuth
 {
-
     /** @inheritdoc */
     function authenticate($username, $password)
     {
@@ -32,7 +31,7 @@ class DbAuthenticator extends AbstractAuth
 
         // Check if the user exists
         if ($stmt->rowCount() < 1)
-            return MessageController::Snackbar('Invalid username or password');
+            return MessageController::Snackbar('User not found');
 
         $userArr = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -72,16 +71,16 @@ class DbAuthenticator extends AbstractAuth
     /**
      * Adds a user to the users table
      * @param string $username
-     * @param string $common_name
      * @param string $password
+     * @param string $common_name
      * @return int
      */
-    public function register($username, $common_name, $password)
+    public function register($username, $password, $common_name = '')
     {
         if (empty($username))
             throw new InvalidArgumentException('Empty parameter username');
         if (empty($common_name))
-            throw new InvalidArgumentException('Empty parameter common_name');
+            $common_name = $username;
         if (empty($password))
             throw new InvalidArgumentException('Empty parameter password');
 

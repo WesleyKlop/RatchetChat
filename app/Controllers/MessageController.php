@@ -68,8 +68,10 @@ class MessageController
             $message->type = Message::TYPE_MESSAGE;
 
             $message->verify();
-            if ($message->status !== Message::STATUS_SUCCESS)
+            if ($message->status !== Message::STATUS_SUCCESS) {
+                var_dump($message);
                 throw new Exception('A recent message wasn\'t valid.. HOW!?');
+            }
 
             $messages[] = $message;
         }

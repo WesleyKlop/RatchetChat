@@ -67,3 +67,11 @@
   Header set Cache-Control "max-age=2678400, private"
   </filesmatch>
 </IfModule>
+
+# Proxypass the websocket
+<IfModule mod_proxy_wstunnel.c>
+    <Location /socket/>
+        ProxyPass ws://localhost:1337
+        ProxyPassReverse ws://localhost:1337
+    </Location>
+</IfModule>

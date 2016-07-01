@@ -29,7 +29,7 @@
         focused = true,
         unreadCount = 0;
 
-    let app = new AppController();
+    let app = new AppController(conn);
 
     conn.onopen = () => {
         console.info("Connection with", socketURL, "is established!");
@@ -107,8 +107,13 @@
         // Intercept commands
         if (msgBox.value.startsWith('/')) {
             let params = msgBox.value.substr(1).split(' '),
-                command = params.shift();
-            return CommandProcessor.Process(command, params);
+                command = params.shift(),
+                packet = CommandProcessor.Process(command, params);
+
+            if (packet)
+                conn.send(packet.toJson());
+
+            return;
         }
 
         // Else send message
@@ -155,7 +160,7 @@
         user.signedIn = true;
 
         // If the silent flag exists the auth wasn't called from a dialog so we can't close it...
-        if (!response.hasFlag('silent')) {
+        if (!response.hasFlag('silent') && signIn.dialog.open) {
             signIn.dialog.close();
 
             UiController.showSnackbar('Successfully signed in as ' + user.common_name, 2500);
@@ -184,15 +189,10 @@
 
     signIn.form.addEventListener('submit', (e) => {
         e.preventDefault();
-        let username = signIn.username.value,
-            password = signIn.password.value;
-        let packet = new Message();
-        packet.type = Message.TYPE_VERIFICATION;
-        packet.username = username;
-        packet.payload = password;
-        packet.status = Message.STATUS_SUCCESS;
 
-        // If we want to be rememberd, add that flag
+        let packet = AppController.loginUser(signIn.username.value, signIn.password.value);
+
+        // If we want to be remembered, add that flag
         if (signIn.remember.checked === true)
             packet.addFlag('remember');
 
@@ -229,7 +229,7 @@
     });
 
     app.registerSW();
-    
+
     // Add event listeners for connection events
     window.addEventListener('offline', () => UiController.showSnackbar("Showing cached messages as you are offline.", 2500));
 })(socketURL);
